@@ -1,7 +1,13 @@
-function foo() {
-    return "hello";
+class Blueprint {
+    constructor(specification) {
+        this.specification = specification
+    }
+
+    make() {
+        return {};
+    }
 }
 
 module.exports = {
-    foo
+    Blueprint
 };

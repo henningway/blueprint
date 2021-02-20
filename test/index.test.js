@@ -1,7 +1,9 @@
-const { foo } = require("../src");
+const { Blueprint } = require("../src");
 
-describe("the world", () => {
-  it("says hello", () => {
-    expect(foo()).toBe('hello');
+describe("Blueprint", () => {
+  it("provides object", () => {
+    const blueprint = new Blueprint();
+
+    expect(typeof blueprint.make()).toBe('object');
   });
 });
