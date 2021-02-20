@@ -1,6 +1,8 @@
 const { Blueprint, $String } = require('../src');
 
 describe('Blueprint', () => {
+    const book = { title: 'The Name of the Wind' };
+
     it('provides object', () => {
         const blueprint = new Blueprint();
 
@@ -12,7 +14,7 @@ describe('Blueprint', () => {
             title: $String
         });
 
-        expect(blueprint.make({ title: 'The Name of the Wind' })).toStrictEqual({ title: 'The Name of the Wind' });
+        expect(blueprint.make(book)).toStrictEqual({ title: 'The Name of the Wind' });
     });
 
     test('can provide alternate keys', () => {
@@ -20,6 +22,6 @@ describe('Blueprint', () => {
             name: $String('title')
         });
 
-        expect(blueprint.make({ title: 'The Name of the Wind' })).toStrictEqual({ name: 'The Name of the Wind' });
+        expect(blueprint.make(book)).toStrictEqual({ name: 'The Name of the Wind' });
     });
 });
