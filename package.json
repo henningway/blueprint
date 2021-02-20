@@ -4,7 +4,8 @@
     "description": "\"Declarative conversion between formats - all objects!\"",
     "main": "index.js",
     "scripts": {
-        "test": "jest"
+        "test": "jest",
+        "prettier": "prettier --write ."
     },
     "repository": {
         "type": "git",
