@@ -1,7 +1,7 @@
-const { Blueprint, $String, $Number, $Boolean } = require('../src');
+const { Blueprint, $String, $Number, $Boolean, $Many } = require('../src');
 
 describe('Blueprint', () => {
-    const book = { title: 'The Name of the Wind', pages: '662', hardCover: 'true' };
+    const book = { title: 'The Name of the Wind', pages: '662', hardCover: 'true', genres: ['fantasy', 'fiction'] };
 
     test('empty blueprint provides empty object', () => {
         const blueprint = new Blueprint();
@@ -33,17 +33,27 @@ describe('Blueprint', () => {
         expect(blueprint.make(book)).toStrictEqual({ hardCover: true });
     });
 
+    it('can extract arrays', () => {
+        const blueprint = new Blueprint({
+            genres: $Many($String)
+        });
+
+        expect(blueprint.make(book)).toStrictEqual({ genres: ['fantasy', 'fiction'] });
+    });
+
     test('can provide alternate keys', () => {
         const blueprint = new Blueprint({
             name: $String('title'),
             pageCount: $Number('pages'),
-            isHardCover: $Boolean('hardCover')
+            isHardCover: $Boolean('hardCover'),
+            categories: $Many($String, 'genres')
         });
 
         expect(blueprint.make(book)).toStrictEqual({
             name: 'The Name of the Wind',
             pageCount: 662,
-            isHardCover: true
+            isHardCover: true,
+            categories: ['fantasy', 'fiction']
         });
     });
 });
