@@ -33,5 +33,7 @@ class Descriptor {
 }
 
 $String = (key) => new Descriptor().type(String).key(key);
+$Number = (key) => new Descriptor().type(Number).key(key);
+$Boolean = (key) => new Descriptor().type(Boolean).key(key);
 
-module.exports = { Blueprint, $String };
+module.exports = { Blueprint, $String, $Number, $Boolean };

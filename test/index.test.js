@@ -1,7 +1,7 @@
-const { Blueprint, $String } = require('../src');
+const { Blueprint, $String, $Number, $Boolean } = require('../src');
 
 describe('Blueprint', () => {
-    const book = { title: 'The Name of the Wind' };
+    const book = { title: 'The Name of the Wind', pages: '662', hardCover: 'true' };
 
     it('provides object', () => {
         const blueprint = new Blueprint();
@@ -17,11 +17,33 @@ describe('Blueprint', () => {
         expect(blueprint.make(book)).toStrictEqual({ title: 'The Name of the Wind' });
     });
 
-    test('can provide alternate keys', () => {
+    it('can extract numbers', () => {
         const blueprint = new Blueprint({
-            name: $String('title')
+            pages: $Number
         });
 
-        expect(blueprint.make(book)).toStrictEqual({ name: 'The Name of the Wind' });
+        expect(blueprint.make(book)).toStrictEqual({ pages: 662 });
+    });
+
+    it('can extract booleans', () => {
+        const blueprint = new Blueprint({
+            hardCover: $Boolean
+        });
+
+        expect(blueprint.make(book)).toStrictEqual({ hardCover: true });
+    });
+
+    test('can provide alternate keys', () => {
+        const blueprint = new Blueprint({
+            name: $String('title'),
+            pageCount: $Number('pages'),
+            isHardCover: $Boolean('hardCover')
+        });
+
+        expect(blueprint.make(book)).toStrictEqual({
+            name: 'The Name of the Wind',
+            pageCount: 662,
+            isHardCover: true
+        });
     });
 });
