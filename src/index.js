@@ -1,6 +1,6 @@
 class Blueprint {
     constructor(specification) {
-        this.specification = specification
+        this.specification = specification;
     }
 
     make() {
@@ -9,5 +9,5 @@ class Blueprint {
 }
 
 module.exports = {
-    Blueprint
+    Blueprint,
 };
