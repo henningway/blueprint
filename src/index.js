@@ -1,13 +1,37 @@
+function extract(raw, descriptor) {
+    return descriptor.type(raw[descriptor.key]);
+}
+
 class Blueprint {
-    constructor(specification) {
+    constructor(specification = {}) {
         this.specification = specification;
     }
 
-    make() {
-        return {};
+    make(raw) {
+        const result = {};
+
+        Object.entries(this.specification).forEach(([key, descriptor]) => {
+            if (typeof descriptor === 'function') descriptor = descriptor(key);
+
+            result[key] = extract(raw, descriptor);
+        });
+
+        return result;
     }
 }
 
-module.exports = {
-    Blueprint,
-};
+class Descriptor {
+    type(type) {
+        this.type = type;
+        return this;
+    }
+
+    key(key) {
+        this.key = key;
+        return this;
+    }
+}
+
+$String = (key) => new Descriptor().type(String).key(key);
+
+module.exports = { Blueprint, $String };
