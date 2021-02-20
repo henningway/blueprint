@@ -3,10 +3,10 @@ const { Blueprint, $String, $Number, $Boolean } = require('../src');
 describe('Blueprint', () => {
     const book = { title: 'The Name of the Wind', pages: '662', hardCover: 'true' };
 
-    it('provides object', () => {
+    test('empty blueprint provides empty object', () => {
         const blueprint = new Blueprint();
 
-        expect(typeof blueprint.make()).toBe('object');
+        expect(blueprint.make()).toStrictEqual({});
     });
 
     it('can extract strings', () => {
