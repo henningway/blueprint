@@ -51,6 +51,26 @@ describe('Blueprint', () => {
         expect(() => blueprint.make(book2)).toThrow(MissingKeyError);
     });
 
+    it('allows for missing keys with maybe', () => {
+        const blueprint = new Blueprint({
+            title: $String.maybe,
+            name: $String('title').maybe,
+            pages: $Number.maybe,
+            pageCount: $Number('pages').maybe,
+            genres: $Many($String).maybe,
+            categories: $Many($String, 'genres').maybe
+        });
+
+        expect(blueprint.make(book2)).toStrictEqual({
+            title: 'The Subtle Art of Not Giving a F*ck',
+            name: 'The Subtle Art of Not Giving a F*ck',
+            pages: null,
+            pageCount: null,
+            genres: null,
+            categories: null
+        });
+    });
+
     test('can provide alternate keys', () => {
         const blueprint = new Blueprint({
             name: $String('title'),

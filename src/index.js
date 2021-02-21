@@ -20,15 +20,10 @@ class Blueprint {
 }
 
 class Descriptor {
-    constructor() {
-        this._type = null; // this should be set at some point
-        this._key = null; // null is *fine* - Blueprint.make will make sure to set the key
-        this._compound = false;
-        return this;
-    }
-
-    type(type) {
+    constructor(type, key = null) {
         this._type = type;
+        this._key = key; // null is *fine* - Blueprint.make will make sure to set the key
+        this._modifiers = [];
         return this;
     }
 
@@ -41,33 +36,64 @@ class Descriptor {
         return helpers.empty(this._key);
     }
 
-    compound(type) {
-        this._type = type;
-        this._compound = true;
+    get maybe() {
+        this._modifiers.push('maybe');
+        return this;
+    }
+
+    modifiers(modifiers) {
+        this._modifiers.push(...modifiers);
         return this;
     }
 
     convert(value) {
-        const caster = this._compound ? Descriptor.resolve(this._type)._type : this._type;
+        const caster = this._type instanceof DescriptorFactory ? Descriptor.resolve(this._type)._type : this._type;
 
-        return this._compound ? value.map((x) => caster(x)) : caster(value);
+        return this._type instanceof DescriptorFactory ? value.map((x) => caster(x)) : caster(value);
     }
 
     extract(raw) {
-        if (!raw.hasOwnProperty(this._key)) throw new MissingKeyError(this._key);
+        if (!raw.hasOwnProperty(this._key)) {
+            if (this._modifiers.includes('maybe')) return null;
+            throw new MissingKeyError(this._key);
+        }
 
         return this.convert(raw[this._key]);
     }
 
     static resolve(descriptor) {
-        const isResolved = descriptor instanceof Descriptor;
-        return isResolved ? descriptor : descriptor();
+        return descriptor instanceof DescriptorFactory ? descriptor() : descriptor;
     }
 }
 
-const $String = (key) => new Descriptor().type(String).key(key);
-const $Number = (key) => new Descriptor().type(Number).key(key);
-const $Boolean = (key) => new Descriptor().type(Boolean).key(key);
-const $Many = (containedDescriptor, key) => new Descriptor().compound(containedDescriptor).key(key);
+class DescriptorFactory extends Function {
+    constructor(type = null) {
+        super();
+        this.type = type;
+        this.modifiers = [];
+        return new Proxy(this, {
+            get: (target, prop) => {
+                target.modifiers.push(prop);
+                return target._call();
+            },
+            apply: (target, thisArg, args) => target._call(...args)
+        });
+    }
+
+    _call(...args) {
+        // $Many($String, ...)
+        if (args[0] instanceof DescriptorFactory) return new Descriptor(...args).modifiers(this.modifiers);
+
+        // $String('title', ...)
+        if (this.type) return new Descriptor(this.type, ...args).modifiers(this.modifiers);
+
+        throw new Error("I don' know how to instantiate a descriptor.");
+    }
+}
+
+const $String = new DescriptorFactory(String);
+const $Number = new DescriptorFactory(Number);
+const $Boolean = new DescriptorFactory(Boolean);
+const $Many = new DescriptorFactory();
 
 module.exports = { Blueprint, $String, $Number, $Boolean, $Many, MissingKeyError };
