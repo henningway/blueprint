@@ -1,7 +1,9 @@
+const { MissingKeyError } = require('../src');
 const { Blueprint, $String, $Number, $Boolean, $Many } = require('../src');
 
 describe('Blueprint', () => {
-    const book = { title: 'The Name of the Wind', pages: '662', hardCover: 'true', genres: ['fantasy', 'fiction'] };
+    const book1 = { title: 'The Name of the Wind', pages: '662', hardCover: 'true', genres: ['fantasy', 'fiction'] };
+    const book2 = { title: 'The Subtle Art of Not Giving a F*ck' };
 
     test('empty blueprint provides empty object', () => {
         const blueprint = new Blueprint();
@@ -14,7 +16,7 @@ describe('Blueprint', () => {
             title: $String
         });
 
-        expect(blueprint.make(book)).toStrictEqual({ title: 'The Name of the Wind' });
+        expect(blueprint.make(book1)).toStrictEqual({ title: 'The Name of the Wind' });
     });
 
     it('can extract numbers', () => {
@@ -22,7 +24,7 @@ describe('Blueprint', () => {
             pages: $Number
         });
 
-        expect(blueprint.make(book)).toStrictEqual({ pages: 662 });
+        expect(blueprint.make(book1)).toStrictEqual({ pages: 662 });
     });
 
     it('can extract booleans', () => {
@@ -30,7 +32,7 @@ describe('Blueprint', () => {
             hardCover: $Boolean
         });
 
-        expect(blueprint.make(book)).toStrictEqual({ hardCover: true });
+        expect(blueprint.make(book1)).toStrictEqual({ hardCover: true });
     });
 
     it('can extract arrays', () => {
@@ -38,7 +40,15 @@ describe('Blueprint', () => {
             genres: $Many($String)
         });
 
-        expect(blueprint.make(book)).toStrictEqual({ genres: ['fantasy', 'fiction'] });
+        expect(blueprint.make(book1)).toStrictEqual({ genres: ['fantasy', 'fiction'] });
+    });
+
+    it('revolts when a key is missing', () => {
+        const blueprint = new Blueprint({
+            pages: $Number
+        });
+
+        expect(() => blueprint.make(book2)).toThrow(MissingKeyError);
     });
 
     test('can provide alternate keys', () => {
@@ -49,7 +59,7 @@ describe('Blueprint', () => {
             categories: $Many($String, 'genres')
         });
 
-        expect(blueprint.make(book)).toStrictEqual({
+        expect(blueprint.make(book1)).toStrictEqual({
             name: 'The Name of the Wind',
             pageCount: 662,
             isHardCover: true,

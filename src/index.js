@@ -1,4 +1,5 @@
 const helpers = require('./helpers');
+const { MissingKeyError } = require('./errors');
 
 class Blueprint {
     constructor(specification = {}) {
@@ -53,6 +54,8 @@ class Descriptor {
     }
 
     extract(raw) {
+        if (!raw.hasOwnProperty(this._key)) throw new MissingKeyError(this._key);
+
         return this.convert(raw[this._key]);
     }
 
@@ -67,4 +70,4 @@ const $Number = (key) => new Descriptor().type(Number).key(key);
 const $Boolean = (key) => new Descriptor().type(Boolean).key(key);
 const $Many = (containedDescriptor, key) => new Descriptor().compound(containedDescriptor).key(key);
 
-module.exports = { Blueprint, $String, $Number, $Boolean, $Many };
+module.exports = { Blueprint, $String, $Number, $Boolean, $Many, MissingKeyError };
