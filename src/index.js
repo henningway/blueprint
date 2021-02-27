@@ -1,8 +1,7 @@
-const helpers = require('./helpers');
-const { IllegalModifierError } = require('./errors');
+const { Enum, empty, assert } = require('./helpers');
 const { MissingKeyError } = require('./errors');
 
-const Modifier = new helpers.Enum({
+const Modifier = new Enum({
     MAYBE: 'maybe'
 });
 
@@ -98,7 +97,7 @@ class Descriptor extends Function {
     }
 
     setKey(key) {
-        if (helpers.empty(this.key)) this.key = key;
+        if (empty(this.key)) this.key = key;
 
         return this;
     }
@@ -108,8 +107,8 @@ class Descriptor extends Function {
     }
 
     checkType() {
-        helpers.assert(!helpers.empty(this.type), 'Descriptor type is not set.');
-        helpers.assert(
+        assert(!empty(this.type), 'Descriptor type is not set.');
+        assert(
             [String, Boolean, Number].includes(this.type) || this.type instanceof Descriptor,
             `${this.type} is not a valid blueprint descriptor.`
         );
@@ -128,7 +127,7 @@ class Descriptor extends Function {
     }
 
     checkIsReady() {
-        helpers.assert(this.ejected, `Descriptor has not been ejected.`);
+        assert(this.ejected, `Descriptor has not been ejected.`);
         this.checkType();
     }
 
@@ -149,4 +148,4 @@ const $Number = new Descriptor(Number);
 const $Boolean = new Descriptor(Boolean);
 const $Many = new Descriptor();
 
-module.exports = { Blueprint, $String, $Number, $Boolean, $Many, MissingKeyError, IllegalModifierError };
+module.exports = { Blueprint, $String, $Number, $Boolean, $Many, MissingKeyError };

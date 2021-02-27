@@ -17,7 +17,7 @@ exports.empty = function (value) {
  * @param condition
  * @param message
  */
-exports.assert = function assert(condition, message = '') {
+exports.assert = function (condition, message = '') {
     if (!condition) {
         message = ['Assertion failed', message].join(': ');
         if (typeof Error !== 'undefined') {

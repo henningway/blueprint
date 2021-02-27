@@ -1,5 +1,4 @@
-const { MissingKeyError } = require('../src');
-const { Blueprint, $String, $Number, $Boolean, $Many } = require('../src');
+const { Blueprint, $String, $Number, $Boolean, $Many, MissingKeyError } = require('../src');
 
 describe('Blueprint', () => {
     const book1 = { title: 'The Name of the Wind', pages: '662', hardCover: 'true', genres: ['fantasy', 'fiction'] };
