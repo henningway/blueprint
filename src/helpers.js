@@ -26,3 +26,28 @@ exports.assert = function assert(condition, message = '') {
         throw message; // Fallback
     }
 };
+
+exports.Enum = class {
+    constructor(elements = {}) {
+        this.elements = elements;
+
+        // proxy enables accessing enum values on the parent object via the elements-array
+        // e.g. SomeEnum.someValue will resolve to SomeEnum.elements.someValue
+        return new Proxy(this, {
+            get(target, prop, receiver) {
+                if (!Reflect.has(target, prop)) {
+                    return target.elements[prop];
+                }
+                return Reflect.get(target, prop, receiver);
+            }
+        });
+    }
+
+    has(element) {
+        return this.values.includes(element);
+    }
+
+    get values() {
+        return Object.values(this.elements);
+    }
+};
