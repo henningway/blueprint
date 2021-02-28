@@ -24,25 +24,18 @@ class Blueprint {
     }
 }
 
+/**
+ * Knows how to use a descriptor to extract a value from a raw object.
+ */
 class Extractor {
     constructor(descriptor) {
         this.descriptor = descriptor.eject();
         return this;
     }
 
-    convert(value) {
-        let caster;
-
-        if (this.descriptor.isHigherOrder) {
-            const extractor = new Extractor(this.descriptor.type);
-            caster = (raw) => extractor.extract(raw);
-        } else {
-            caster = this.descriptor.type;
-        }
-
-        return this.descriptor.isHigherOrder ? value.map((x) => caster(x)) : caster(value);
-    }
-
+    /**
+     * Takes a raw object. Unpacks the value to be converted when a key is present. Runs the conversion.
+     */
     extract(raw) {
         this.descriptor.checkIsReady();
 
@@ -53,6 +46,25 @@ class Extractor {
 
         return this.convert(this.descriptor.hasKey ? raw[this.descriptor.key] : raw);
     }
+
+    /**
+     * Converts a value according to descriptor. Applies mutator when applicable.
+     */
+    convert(value) {
+        const caster = this.applyMutator(this.caster);
+
+        return this.descriptor.isHigherOrder ? value.map((x) => caster(x)) : caster(value);
+    }
+
+    get caster() {
+        return this.descriptor.isHigherOrder
+            ? (raw) => new Extractor(this.descriptor.type).extract(raw)
+            : this.descriptor.type;
+    }
+
+    applyMutator(caster) {
+        return this.descriptor.hasMutator ? (raw) => this.descriptor.mutator(caster(raw)) : caster;
+    }
 }
 
 class Descriptor extends Function {
@@ -60,6 +72,7 @@ class Descriptor extends Function {
         super();
         this.type = type;
         this.key = null;
+        this.mutator = null;
         this.ejected = ejected;
         this.modifiers = [];
 
@@ -83,9 +96,10 @@ class Descriptor extends Function {
     // when Descriptor is called as a function, examples: $String(...), $Many(...), etc.
     call(...args) {
         // nesting of descriptors, example: $Many($String, ...)
-        if (args[0] instanceof Descriptor) this.setType(args.shift());
+        if (args.length > 0 && args[0] instanceof Descriptor) this.setType(args.shift());
 
-        this.setKey(args.shift());
+        if (args.length > 0) this.setKey(args.shift());
+        if (args.length > 0) this.setMutator(args.shift());
 
         return this;
     }
@@ -97,8 +111,16 @@ class Descriptor extends Function {
     }
 
     setKey(key) {
-        if (empty(this.key)) this.key = key;
+        assert(typeof key === 'string', `Key should be a string, but it is not.`);
 
+        if (empty(this.key)) this.key = key;
+        return this;
+    }
+
+    setMutator(mutator) {
+        assert(typeof mutator === 'function', `Mutator should be a function, but it is not.`);
+
+        this.mutator = mutator;
         return this;
     }
 
@@ -124,6 +146,10 @@ class Descriptor extends Function {
 
     get isHigherOrder() {
         return this.type instanceof Descriptor;
+    }
+
+    get hasMutator() {
+        return typeof this.mutator === 'function';
     }
 
     checkIsReady() {

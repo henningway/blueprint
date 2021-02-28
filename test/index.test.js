@@ -85,4 +85,18 @@ describe('Blueprint', () => {
             categories: ['fantasy', 'fiction']
         });
     });
+
+    it('can mutate values with mutator callbacks', () => {
+        const blueprint = new Blueprint({
+            title: $String('title', (x) => x.toUpperCase()),
+            extraLong: $Boolean('pages', (x) => x > 1000),
+            genres: $Many($String, 'genres', (x) => x + ' book')
+        });
+
+        expect(blueprint.make(book1)).toStrictEqual({
+            title: 'THE NAME OF THE WIND',
+            extraLong: false,
+            genres: ['fantasy book', 'fiction book']
+        });
+    });
 });
