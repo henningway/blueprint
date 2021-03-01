@@ -13,13 +13,20 @@ class Blueprint {
         this.specification = specification;
     }
 
-    make(raw) {
+    make(raw = {}) {
         const result = {};
+        const makeNullObject = empty(raw);
 
         Object.entries(this.specification).forEach(([key, descriptor]) => {
             descriptor = descriptor.eject();
             descriptor.setKey(key);
-            const extractor = new Extractor(descriptor, key);
+            const extractor = new Extractor(descriptor);
+
+            if (makeNullObject) {
+                result[key] = extractor.makeNullValue();
+                return;
+            }
+
             const value = extractor.extract(raw);
             if (value !== MissingKey) result[key] = extractor.extract(raw);
         });
@@ -69,6 +76,10 @@ class Extractor {
 
     applyMutator(caster) {
         return this.descriptor.hasMutator ? (raw) => this.descriptor.mutator(caster(raw)) : caster;
+    }
+
+    makeNullValue() {
+        return this.convert(this.descriptor.isHigherOrder ? [] : '');
     }
 }
 

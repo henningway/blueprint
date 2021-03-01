@@ -46,7 +46,6 @@ describe('Blueprint', () => {
         const blueprint = new Blueprint({
             pages: $Number
         });
-
         expect(() => blueprint.make(book2)).toThrow(MissingKeyError);
     });
 
@@ -119,5 +118,21 @@ describe('Blueprint', () => {
         });
 
         expect(blueprint.make(book1)).toStrictEqual({ price: null });
+    });
+
+    it('can create null objects', () => {
+        const blueprint = new Blueprint({
+            title: $String,
+            pages: $Number,
+            hardCover: $Boolean,
+            genres: $Many($String)
+        });
+
+        expect(blueprint.make()).toStrictEqual({
+            title: '',
+            pages: 0,
+            hardCover: false,
+            genres: []
+        });
     });
 });
