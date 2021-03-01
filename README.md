@@ -1,6 +1,6 @@
 # Blueprint
 
-Declarative object conversion.
+Declarative object conversion for JavaScript.
 
 Example:
 
