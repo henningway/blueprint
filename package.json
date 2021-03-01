@@ -1,6 +1,6 @@
 {
     "name": "blueprint",
-    "version": "0.0.1",
+    "version": "0.1.0",
     "description": "Declarative object conversion for JavaScript.",
     "main": "src/index.js",
     "scripts": {
