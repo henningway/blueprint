@@ -28,7 +28,6 @@ const book = BookFactory({
 Result:
 
 ```javascript
-Result:
 {
     title: 'The Name of the Wind',
     pages: 662,
