@@ -99,4 +99,25 @@ describe('Blueprint', () => {
             genres: ['fantasy book', 'fiction book']
         });
     });
+
+    it('can leave out empty values with optional', () => {
+        const blueprint = new Blueprint({
+            title: $String.optional,
+            pageCount: $Number('pages').optional,
+            price: $Number.optional
+        });
+
+        expect(blueprint.make(book1)).toStrictEqual({
+            title: 'The Name of the Wind',
+            pageCount: 662
+        });
+    });
+
+    test('maybe takes precedence over optional', () => {
+        const blueprint = new Blueprint({
+            price: $Number.optional.maybe
+        });
+
+        expect(blueprint.make(book1)).toStrictEqual({ price: null });
+    });
 });

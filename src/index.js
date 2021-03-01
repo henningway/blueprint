@@ -1,8 +1,11 @@
 const { Enum, empty, assert } = require('./helpers');
 const { MissingKeyError } = require('./errors');
 
+const MissingKey = Symbol('missing key');
+
 const Modifier = new Enum({
-    MAYBE: 'maybe'
+    MAYBE: 'maybe',
+    OPTIONAL: 'optional'
 });
 
 class Blueprint {
@@ -17,7 +20,8 @@ class Blueprint {
             descriptor = descriptor.eject();
             descriptor.setKey(key);
             const extractor = new Extractor(descriptor, key);
-            result[key] = extractor.extract(raw);
+            const value = extractor.extract(raw);
+            if (value !== MissingKey) result[key] = extractor.extract(raw);
         });
 
         return result;
@@ -34,13 +38,14 @@ class Extractor {
     }
 
     /**
-     * Takes a raw object. Unpacks the value to be converted when a key is present. Runs the conversion.
+     * Takes a raw value or object. Unpacks the value to be converted when a key is present. Runs the conversion.
      */
     extract(raw) {
         this.descriptor.checkIsReady();
 
         if (typeof raw === 'object' && !raw.hasOwnProperty(this.descriptor.key)) {
             if (this.descriptor.hasModifier(Modifier.MAYBE)) return null;
+            if (this.descriptor.hasModifier(Modifier.OPTIONAL)) return MissingKey;
             throw new MissingKeyError(this.descriptor.key);
         }
 
