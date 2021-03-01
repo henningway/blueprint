@@ -5,7 +5,7 @@ Declarative object conversion for JavaScript.
 Example:
 
 ```javascript
-const BookFactory = (raw) => blueprint(
+const makeBook = (raw) => blueprint(
     title: $String, // primitives: $Boolean, $Number, $String
     pages: $Number('length'), // map mismatching keys
     genre: $Many($String, 'categories'), // arrays
@@ -14,15 +14,13 @@ const BookFactory = (raw) => blueprint(
     isHardCover: $Boolean('coverType', (type) => type === 'hardcover'), // provide conversion logic beyond simple casting with mutators
 ).make(raw);
 
-const book = BookFactory({
+makeBook({
     title: 'The Name of the Wind',
     length: '662',
     coverType: 'hardcover',
     categories: ['fantasy', 'fiction'],
     price: null
 });
-
-
 ```
 
 Result:

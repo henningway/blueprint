@@ -150,7 +150,7 @@ describe('Blueprint', () => {
     });
 
     test('readme example', () => {
-        const BookFactory = (raw) =>
+        const makeBook = (raw) =>
             blueprint({
                 title: $String,
                 pages: $Number('length'),
@@ -160,14 +160,14 @@ describe('Blueprint', () => {
                 containsVoldemort: $Boolean.optional
             }).make(raw);
 
-        const book = BookFactory({
-            title: 'The Name of the Wind',
-            length: '662',
-            coverType: 'hardcover',
-            categories: ['fantasy', 'fiction']
-        });
-
-        expect(book).toStrictEqual({
+        expect(
+            makeBook({
+                title: 'The Name of the Wind',
+                length: '662',
+                coverType: 'hardcover',
+                categories: ['fantasy', 'fiction']
+            })
+        ).toStrictEqual({
             title: 'The Name of the Wind',
             pages: 662,
             isHardCover: true,
