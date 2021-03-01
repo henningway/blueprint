@@ -5,9 +5,8 @@ exports.MissingKeyError = class extends Error {
     }
 };
 
-// @TODO make use of
 exports.IllegalModifierError = class extends Error {
-    constructor(modifier) {
+    constructor(modifier = null) {
         super(`'${modifier}' is not a valid modifier.`);
         this.name = 'IllegalModifierError';
     }

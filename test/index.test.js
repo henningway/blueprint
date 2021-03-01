@@ -1,4 +1,4 @@
-const { Blueprint, $String, $Number, $Boolean, $Many, MissingKeyError } = require('../src');
+const { Blueprint, $String, $Number, $Boolean, $Many, MissingKeyError, IllegalModifierError } = require('../src');
 
 describe('Blueprint', () => {
     const book1 = { title: 'The Name of the Wind', pages: '662', hardCover: 'true', genres: ['fantasy', 'fiction'] };
@@ -40,13 +40,6 @@ describe('Blueprint', () => {
         });
 
         expect(blueprint.make(book1)).toStrictEqual({ genres: ['fantasy', 'fiction'] });
-    });
-
-    it('revolts when a key is missing', () => {
-        const blueprint = new Blueprint({
-            pages: $Number
-        });
-        expect(() => blueprint.make(book2)).toThrow(MissingKeyError);
     });
 
     it('allows for missing keys with maybe', () => {
@@ -134,5 +127,16 @@ describe('Blueprint', () => {
             hardCover: false,
             genres: []
         });
+    });
+
+    it('revolts when a key is missing', () => {
+        const blueprint = new Blueprint({
+            pages: $Number
+        });
+        expect(() => blueprint.make(book2)).toThrow(MissingKeyError);
+    });
+
+    it('revolts when an illegal modifier is used', () => {
+        expect(() => new Blueprint({ title: $String.voldemort })).toThrow(IllegalModifierError);
     });
 });
