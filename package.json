@@ -1,7 +1,7 @@
 {
     "name": "blueprint",
     "version": "0.0.1",
-    "description": "\"Declarative conversion between formats - all objects!\"",
+    "description": "Declarative object conversion for JavaScript.",
     "main": "index.js",
     "scripts": {
         "test": "jest",
@@ -11,7 +11,7 @@
         "type": "git",
         "url": "git+https://github.com/henningway/blueprint.git"
     },
-    "author": "Henning Schindler",
+    "author": "Henning Schindler <mail@henningschindler.de>",
     "license": "MIT",
     "bugs": {
         "url": "https://github.com/henningway/blueprint/issues"
