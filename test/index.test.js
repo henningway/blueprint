@@ -1,4 +1,13 @@
-const { Blueprint, $String, $Number, $Boolean, $Many, MissingKeyError, IllegalModifierError } = require('../src');
+const {
+    Blueprint,
+    blueprint,
+    $String,
+    $Number,
+    $Boolean,
+    $Many,
+    MissingKeyError,
+    IllegalModifierError
+} = require('../src');
 
 describe('Blueprint', () => {
     const book1 = { title: 'The Name of the Wind', pages: '662', hardCover: 'true', genres: ['fantasy', 'fiction'] };
@@ -138,5 +147,32 @@ describe('Blueprint', () => {
 
     it('revolts when an illegal modifier is used', () => {
         expect(() => new Blueprint({ title: $String.voldemort })).toThrow(IllegalModifierError);
+    });
+
+    test('readme example', () => {
+        const BookFactory = (raw) =>
+            blueprint({
+                title: $String,
+                pages: $Number('length'),
+                isHardCover: $Boolean('coverType', (value) => value === 'hardcover'),
+                genre: $Many($String, 'categories'),
+                price: $Number.maybe,
+                containsVoldemort: $Boolean.optional
+            }).make(raw);
+
+        const book = BookFactory({
+            title: 'The Name of the Wind',
+            length: '662',
+            coverType: 'hardcover',
+            categories: ['fantasy', 'fiction']
+        });
+
+        expect(book).toStrictEqual({
+            title: 'The Name of the Wind',
+            pages: 662,
+            isHardCover: true,
+            genre: ['fantasy', 'fiction'],
+            price: null
+        });
     });
 });

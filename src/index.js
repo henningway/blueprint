@@ -75,7 +75,7 @@ class Extractor {
     }
 
     applyMutator(caster) {
-        return this.descriptor.hasMutator ? (raw) => this.descriptor.mutator(caster(raw)) : caster;
+        return this.descriptor.hasMutator ? (raw) => caster(this.descriptor.mutator(raw)) : caster;
     }
 
     makeNullValue() {
@@ -192,4 +192,6 @@ const $Number = new Descriptor(Number);
 const $Boolean = new Descriptor(Boolean);
 const $Many = new Descriptor();
 
-module.exports = { Blueprint, $String, $Number, $Boolean, $Many, MissingKeyError, IllegalModifierError };
+const blueprint = (...args) => new Blueprint(...args);
+
+module.exports = { Blueprint, blueprint, $String, $Number, $Boolean, $Many, MissingKeyError, IllegalModifierError };
