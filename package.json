@@ -2,7 +2,7 @@
     "name": "blueprint",
     "version": "0.0.1",
     "description": "Declarative object conversion for JavaScript.",
-    "main": "index.js",
+    "main": "src/index.js",
     "scripts": {
         "test": "jest",
         "prettier": "prettier --write ."
