@@ -204,7 +204,6 @@ const $Number = new Descriptor(Number);
 const $Boolean = new Descriptor(Boolean);
 const $Many = new Descriptor();
 
-// @TODO use everywhere instead of new Blueprint()
 const blueprint = (specification) => new Blueprint(specification);
 const factory = (specification) => (raw) => blueprint(specification).make(raw);
 

@@ -1,5 +1,4 @@
 const {
-    Blueprint,
     blueprint,
     factory,
     $String,
@@ -15,45 +14,43 @@ describe('Blueprint', () => {
     const book2 = { title: 'The Subtle Art of Not Giving a F*ck' };
 
     test('empty blueprint provides empty object', () => {
-        const blueprint = new Blueprint();
-
-        expect(blueprint.make()).toStrictEqual({});
+        expect(blueprint().make()).toStrictEqual({});
     });
 
     it('can extract strings', () => {
-        const blueprint = new Blueprint({
+        const bookBlueprint = blueprint({
             title: $String
         });
 
-        expect(blueprint.make(book1)).toStrictEqual({ title: 'The Name of the Wind' });
+        expect(bookBlueprint.make(book1)).toStrictEqual({ title: 'The Name of the Wind' });
     });
 
     it('can extract numbers', () => {
-        const blueprint = new Blueprint({
+        const bookBlueprint = blueprint({
             pages: $Number
         });
 
-        expect(blueprint.make(book1)).toStrictEqual({ pages: 662 });
+        expect(bookBlueprint.make(book1)).toStrictEqual({ pages: 662 });
     });
 
     it('can extract booleans', () => {
-        const blueprint = new Blueprint({
+        const bookBlueprint = blueprint({
             hardCover: $Boolean
         });
 
-        expect(blueprint.make(book1)).toStrictEqual({ hardCover: true });
+        expect(bookBlueprint.make(book1)).toStrictEqual({ hardCover: true });
     });
 
     it('can extract arrays', () => {
-        const blueprint = new Blueprint({
+        const bookBlueprint = blueprint({
             genres: $Many($String)
         });
 
-        expect(blueprint.make(book1)).toStrictEqual({ genres: ['fantasy', 'fiction'] });
+        expect(bookBlueprint.make(book1)).toStrictEqual({ genres: ['fantasy', 'fiction'] });
     });
 
     it('allows for missing keys with maybe', () => {
-        const blueprint = new Blueprint({
+        const bookBlueprint = blueprint({
             title: $String.maybe,
             name: $String('title').maybe,
             pages: $Number.maybe,
@@ -62,7 +59,7 @@ describe('Blueprint', () => {
             categories: $Many($String, 'genres').maybe
         });
 
-        expect(blueprint.make(book2)).toStrictEqual({
+        expect(bookBlueprint.make(book2)).toStrictEqual({
             title: 'The Subtle Art of Not Giving a F*ck',
             name: 'The Subtle Art of Not Giving a F*ck',
             pages: null,
@@ -73,14 +70,14 @@ describe('Blueprint', () => {
     });
 
     test('can provide alternate keys', () => {
-        const blueprint = new Blueprint({
+        const bookBlueprint = blueprint({
             name: $String('title'),
             pageCount: $Number('pages'),
             isHardCover: $Boolean('hardCover'),
             categories: $Many($String, 'genres')
         });
 
-        expect(blueprint.make(book1)).toStrictEqual({
+        expect(bookBlueprint.make(book1)).toStrictEqual({
             name: 'The Name of the Wind',
             pageCount: 662,
             isHardCover: true,
@@ -89,13 +86,13 @@ describe('Blueprint', () => {
     });
 
     it('can mutate values with mutator callbacks', () => {
-        const blueprint = new Blueprint({
+        const bookBlueprint = blueprint({
             title: $String('title', (x) => x.toUpperCase()),
             extraLong: $Boolean('pages', (x) => x > 1000),
             genres: $Many($String, 'genres', (x) => x + ' book')
         });
 
-        expect(blueprint.make(book1)).toStrictEqual({
+        expect(bookBlueprint.make(book1)).toStrictEqual({
             title: 'THE NAME OF THE WIND',
             extraLong: false,
             genres: ['fantasy book', 'fiction book']
@@ -103,35 +100,35 @@ describe('Blueprint', () => {
     });
 
     it('can leave out empty values with optional', () => {
-        const blueprint = new Blueprint({
+        const bookBlueprint = blueprint({
             title: $String.optional,
             pageCount: $Number('pages').optional,
             price: $Number.optional
         });
 
-        expect(blueprint.make(book1)).toStrictEqual({
+        expect(bookBlueprint.make(book1)).toStrictEqual({
             title: 'The Name of the Wind',
             pageCount: 662
         });
     });
 
     test('maybe takes precedence over optional', () => {
-        const blueprint = new Blueprint({
+        const bookBlueprint = blueprint({
             price: $Number.optional.maybe
         });
 
-        expect(blueprint.make(book1)).toStrictEqual({ price: null });
+        expect(bookBlueprint.make(book1)).toStrictEqual({ price: null });
     });
 
     it('can create null objects', () => {
-        const blueprint = new Blueprint({
+        const bookBlueprint = blueprint({
             title: $String,
             pages: $Number,
             hardCover: $Boolean,
             genres: $Many($String)
         });
 
-        expect(blueprint.make()).toStrictEqual({
+        expect(bookBlueprint.make()).toStrictEqual({
             title: '',
             pages: 0,
             hardCover: false,
@@ -140,26 +137,25 @@ describe('Blueprint', () => {
     });
 
     it('revolts when a key is missing', () => {
-        const blueprint = new Blueprint({
+        const bookBlueprint = blueprint({
             pages: $Number
         });
-        expect(() => blueprint.make(book2)).toThrow(MissingKeyError);
+        expect(() => bookBlueprint.make(book2)).toThrow(MissingKeyError);
     });
 
     it('revolts when an illegal modifier is used', () => {
-        expect(() => new Blueprint({ title: $String.voldemort })).toThrow(IllegalModifierError);
+        expect(() => blueprint({ title: $String.voldemort })).toThrow(IllegalModifierError);
     });
 
     test('readme example', () => {
-        const makeBook = (raw) =>
-            blueprint({
-                title: $String,
-                pages: $Number('length'),
-                isHardCover: $Boolean('coverType', (value) => value === 'hardcover'),
-                genre: $Many($String, 'categories'),
-                price: $Number.maybe,
-                containsVoldemort: $Boolean.optional
-            }).make(raw);
+        const makeBook = factory({
+            title: $String,
+            pages: $Number('length'),
+            isHardCover: $Boolean('coverType', (value) => value === 'hardcover'),
+            genre: $Many($String, 'categories'),
+            price: $Number.maybe,
+            containsVoldemort: $Boolean.optional
+        });
 
         expect(
             makeBook({
