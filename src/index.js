@@ -8,6 +8,13 @@ const Modifier = new Enum({
     OPTIONAL: 'optional'
 });
 
+// @TODO rename (too clunky)
+const DescriptorTypeValue = new Enum({
+    ARRAY: 'array',
+    FACTORY: 'factory',
+    PRIMITIVE: 'primitive'
+});
+
 class Blueprint {
     constructor(specification = {}) {
         this.specification = specification;
@@ -65,13 +72,17 @@ class Extractor {
     convert(value) {
         const caster = this.applyMutator(this.caster);
 
-        return this.descriptor.isHigherOrder ? value.map((x) => caster(x)) : caster(value);
+        return this.descriptor.descriptorTypeValue === DescriptorTypeValue.ARRAY ||
+            this.descriptor.descriptorTypeValue === DescriptorTypeValue.FACTORY
+            ? value.map((x) => caster(x))
+            : caster(value);
     }
 
     get caster() {
-        return this.descriptor.isHigherOrder
-            ? (raw) => new Extractor(this.descriptor.type).extract(raw)
-            : this.descriptor.type;
+        if (this.descriptor.descriptorTypeValue === DescriptorTypeValue.ARRAY)
+            return (raw) => new Extractor(this.descriptor.type).extract(raw);
+
+        return this.descriptor.type;
     }
 
     applyMutator(caster) {
@@ -79,7 +90,7 @@ class Extractor {
     }
 
     makeNullValue() {
-        return this.convert(this.descriptor.isHigherOrder ? [] : '');
+        return this.convert(this.descriptor.descriptorTypeValue === DescriptorTypeValue.ARRAY ? [] : '');
     }
 }
 
@@ -114,7 +125,8 @@ class Descriptor extends Function {
     // when Descriptor is called as a function, examples: $String(...), $Many(...), etc.
     call(...args) {
         // nesting of descriptors, example: $Many($String, ...)
-        if (args.length > 0 && args[0] instanceof Descriptor) this.setType(args.shift());
+        if (args.length > 0 && (args[0] instanceof Descriptor || args[0] instanceof Function))
+            this.setType(args.shift());
 
         if (args.length > 0) this.setKey(args.shift());
         if (args.length > 0) this.setMutator(args.shift());
@@ -148,10 +160,7 @@ class Descriptor extends Function {
 
     checkType() {
         assert(!empty(this.type), 'Descriptor type is not set.');
-        assert(
-            [String, Boolean, Number].includes(this.type) || this.type instanceof Descriptor,
-            `The type of the descriptor is not valid.`
-        );
+        assert(this.descriptorTypeValue !== null, `The type of the descriptor is not valid.`);
     }
 
     get hasKey() {
@@ -162,8 +171,11 @@ class Descriptor extends Function {
         return this.modifiers.includes(modifier);
     }
 
-    get isHigherOrder() {
-        return this.type instanceof Descriptor;
+    get descriptorTypeValue() {
+        if ([String, Boolean, Number].includes(this.type)) return DescriptorTypeValue.PRIMITIVE;
+        if (this.type instanceof Descriptor) return DescriptorTypeValue.ARRAY;
+        if (this.type instanceof Function) return DescriptorTypeValue.FACTORY;
+        return null;
     }
 
     get hasMutator() {
@@ -192,6 +204,18 @@ const $Number = new Descriptor(Number);
 const $Boolean = new Descriptor(Boolean);
 const $Many = new Descriptor();
 
-const blueprint = (...args) => new Blueprint(...args);
+// @TODO use everywhere instead of new Blueprint()
+const blueprint = (specification) => new Blueprint(specification);
+const factory = (specification) => (raw) => blueprint(specification).make(raw);
 
-module.exports = { Blueprint, blueprint, $String, $Number, $Boolean, $Many, MissingKeyError, IllegalModifierError };
+module.exports = {
+    Blueprint,
+    blueprint,
+    factory,
+    $String,
+    $Number,
+    $Boolean,
+    $Many,
+    MissingKeyError,
+    IllegalModifierError
+};

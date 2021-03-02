@@ -1,6 +1,7 @@
 const {
     Blueprint,
     blueprint,
+    factory,
     $String,
     $Number,
     $Boolean,
@@ -173,6 +174,19 @@ describe('Blueprint', () => {
             isHardCover: true,
             genre: ['fantasy', 'fiction'],
             price: null
+        });
+    });
+
+    it('can be nested', () => {
+        const Book = factory({ title: $String });
+        const Shelve = factory({ books: $Many(Book) });
+
+        expect(
+            Shelve({
+                books: [book1, book2]
+            })
+        ).toStrictEqual({
+            books: [{ title: 'The Name of the Wind' }, { title: 'The Subtle Art of Not Giving a F*ck' }]
         });
     });
 });
