@@ -4,7 +4,7 @@ Declarative object conversion for JavaScript.
 
 ## Example
 
-**Define blueprint:**
+Define blueprint:
 
 ```javascript
 const book = blueprint({
@@ -17,7 +17,7 @@ const book = blueprint({
 });
 ```
 
-**Convert:**
+Convert:
 
 ```javascript
 book.make({
@@ -29,7 +29,7 @@ book.make({
 });
 ```
 
-**Result:**
+Result:
 
 ```javascript
 {
