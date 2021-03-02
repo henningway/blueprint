@@ -31,7 +31,7 @@ Result:
     title: 'The Name of the Wind',
     pages: 662,
     genre: ['fantasy', 'fiction'],
-    price: null
-    isHardCover: true,
+    price: null,
+    isHardCover: true
 }
 ```
