@@ -148,7 +148,7 @@ describe('Blueprint', () => {
     });
 
     test('readme example', () => {
-        const makeBook = factory({
+        const book = blueprint({
             title: $String,
             pages: $Number('length'),
             isHardCover: $Boolean('coverType', (value) => value === 'hardcover'),
@@ -158,7 +158,7 @@ describe('Blueprint', () => {
         });
 
         expect(
-            makeBook({
+            book.make({
                 title: 'The Name of the Wind',
                 length: '662',
                 coverType: 'hardcover',
