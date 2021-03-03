@@ -3,7 +3,7 @@
  *
  * Adapted from https://github.com/you-dont-need/You-Dont-Need-Lodash-Underscore#_isempty
  */
-exports.empty = function (value) {
+export const empty = function (value) {
     if (['number', 'boolean'].includes(typeof value)) return false;
 
     return [Object, Array].includes((value || {}).constructor) && !Object.entries(value || {}).length;
@@ -17,7 +17,7 @@ exports.empty = function (value) {
  * @param condition
  * @param message
  */
-exports.assert = function (condition, message = '') {
+export const assert = function (condition, message = '') {
     if (!condition) {
         message = ['Assertion failed', message].join(': ');
         if (typeof Error !== 'undefined') {
@@ -27,7 +27,7 @@ exports.assert = function (condition, message = '') {
     }
 };
 
-exports.Enum = class {
+export const Enum = class {
     constructor(elements = {}) {
         this.elements = elements;
 

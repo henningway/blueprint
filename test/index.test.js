@@ -7,7 +7,7 @@ const {
     $Many,
     MissingKeyError,
     IllegalModifierError
-} = require('../src');
+} = require('../dist');
 
 describe('Blueprint', () => {
     const book1 = { title: 'The Name of the Wind', pages: '662', hardCover: 'true', genres: ['fantasy', 'fiction'] };

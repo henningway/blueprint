@@ -4,6 +4,8 @@
     "description": "Declarative object conversion for JavaScript.",
     "main": "src/index.js",
     "scripts": {
+        "watch": "rollup -c -w",
+        "build": "rollup --config",
         "test": "jest",
         "prettier": "prettier --write ."
     },
@@ -21,9 +23,12 @@
         "husky": "^5.1.2",
         "jest": "^26.6.3",
         "prettier": "^2.2.1",
-        "pretty-quick": "^3.1.0"
+        "pretty-quick": "^3.1.0",
+        "rollup": "^2.40.0"
     },
-    "dependencies": {},
+    "dependencies": {
+        "rollup-plugin-filesize": "^9.1.1"
+    },
     "prettier": {
         "printWidth": 120,
         "singleQuote": true,

@@ -1,5 +1,5 @@
-const { Enum, empty, assert } = require('./helpers');
-const { MissingKeyError, IllegalModifierError } = require('./errors');
+import { Enum, empty, assert } from './helpers';
+import { MissingKeyError, IllegalModifierError } from './errors';
 
 const MissingKey = Symbol('missing key');
 
@@ -207,14 +207,4 @@ const $Many = new Descriptor();
 const blueprint = (specification) => new Blueprint(specification);
 const factory = (specification) => (raw) => blueprint(specification).make(raw);
 
-module.exports = {
-    Blueprint,
-    blueprint,
-    factory,
-    $String,
-    $Number,
-    $Boolean,
-    $Many,
-    MissingKeyError,
-    IllegalModifierError
-};
+export { Blueprint, blueprint, factory, $String, $Number, $Boolean, $Many, MissingKeyError, IllegalModifierError };
