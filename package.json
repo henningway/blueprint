@@ -4,9 +4,10 @@
     "description": "Declarative object conversion for JavaScript.",
     "main": "src/index.js",
     "scripts": {
-        "watch": "rollup -c -w",
         "build": "rollup --config",
+        "watch": "rollup -c -w",
         "test": "jest",
+        "test:build": "npm run build && npm run test",
         "prettier": "prettier --write .",
         "prepare": "husky install"
     },
@@ -21,13 +22,16 @@
     },
     "homepage": "https://github.com/henningway/blueprint#readme",
     "devDependencies": {
+        "@rollup/plugin-typescript": "^8.2.0",
         "husky": "^5.1.2",
         "jest": "^26.6.3",
         "prettier": "^2.2.1",
         "pretty-quick": "^3.1.0",
         "rollup": "^2.40.0",
         "rollup-plugin-filesize": "^9.1.1",
-        "rollup-plugin-terser": "^7.0.2"
+        "rollup-plugin-terser": "^7.0.2",
+        "tslib": "^2.1.0",
+        "typescript": "^4.2.2"
     },
     "dependencies": {},
     "prettier": {
