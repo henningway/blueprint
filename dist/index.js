@@ -1,296 +1,182 @@
-(function (global, factory) {
-    typeof exports === 'object' && typeof module !== 'undefined'
-        ? factory(exports)
-        : typeof define === 'function' && define.amd
-        ? define(['exports'], factory)
-        : ((global = typeof globalThis !== 'undefined' ? globalThis : global || self),
-          factory((global.Blueprint = {})));
-})(this, function (exports) {
+!(function (e, t) {
+    'object' == typeof exports && 'undefined' != typeof module
+        ? t(exports)
+        : 'function' == typeof define && define.amd
+        ? define(['exports'], t)
+        : t(((e = 'undefined' != typeof globalThis ? globalThis : e || self).Blueprint = {}));
+})(this, function (e) {
     'use strict';
-
-    /**
-     * Checks whether a value is empty (null, undefined, '', [], {}).
-     *
-     * Adapted from https://github.com/you-dont-need/You-Dont-Need-Lodash-Underscore#_isempty
-     */
-    const empty = function (value) {
-        if (['number', 'boolean'].includes(typeof value)) return false;
-
-        return [Object, Array].includes((value || {}).constructor) && !Object.entries(value || {}).length;
-    };
-
-    /**
-     * Javascript lacks assertions. But it's simple to roll our own.
-     *
-     * Shamelessly adapted from https://stackoverflow.com/a/15313435
-     *
-     * @param condition
-     * @param message
-     */
-    const assert = function (condition, message = '') {
-        if (!condition) {
-            message = ['Assertion failed', message].join(': ');
-            if (typeof Error !== 'undefined') {
-                throw new Error(message);
+    const t = function (e) {
+            return (
+                !['number', 'boolean'].includes(typeof e) &&
+                [Object, Array].includes((e || {}).constructor) &&
+                !Object.entries(e || {}).length
+            );
+        },
+        r = function (e, t = '') {
+            if (!e) {
+                if (((t = ['Assertion failed', t].join(': ')), 'undefined' != typeof Error)) throw new Error(t);
+                throw t;
             }
-            throw message; // Fallback
+        },
+        s = class {
+            constructor(e = {}) {
+                return (
+                    (this.elements = e),
+                    new Proxy(this, { get: (e, t, r) => (Reflect.has(e, t) ? Reflect.get(e, t, r) : e.elements[t]) })
+                );
+            }
+            has(e) {
+                return this.values.includes(e);
+            }
+            get values() {
+                return Object.values(this.elements);
+            }
+        },
+        i = class extends Error {
+            constructor(e) {
+                super(`The key '${e}' is missing from the object to be converted.`), (this.name = 'MissingKeyError');
+            }
+        },
+        n = class extends Error {
+            constructor(e = null) {
+                super(`'${e}' is not a valid modifier.`), (this.name = 'IllegalModifierError');
+            }
+        },
+        o = Symbol('missing key'),
+        c = new s({ MAYBE: 'maybe', OPTIONAL: 'optional' }),
+        u = new s({ ARRAY: 'array', FACTORY: 'factory', PRIMITIVE: 'primitive' });
+    class h {
+        constructor(e = {}) {
+            this.specification = e;
         }
-    };
-
-    const Enum = class {
-        constructor(elements = {}) {
-            this.elements = elements;
-
-            // proxy enables accessing enum values on the parent object via the elements-array
-            // e.g. SomeEnum.someValue will resolve to SomeEnum.elements.someValue
-            return new Proxy(this, {
-                get(target, prop, receiver) {
-                    if (!Reflect.has(target, prop)) {
-                        return target.elements[prop];
-                    }
-                    return Reflect.get(target, prop, receiver);
-                }
-            });
-        }
-
-        has(element) {
-            return this.values.includes(element);
-        }
-
-        get values() {
-            return Object.values(this.elements);
-        }
-    };
-
-    const MissingKeyError = class extends Error {
-        constructor(key) {
-            super(`The key '${key}' is missing from the object to be converted.`);
-            this.name = 'MissingKeyError';
-        }
-    };
-
-    const IllegalModifierError = class extends Error {
-        constructor(modifier = null) {
-            super(`'${modifier}' is not a valid modifier.`);
-            this.name = 'IllegalModifierError';
-        }
-    };
-
-    const MissingKey = Symbol('missing key');
-
-    const Modifier = new Enum({
-        MAYBE: 'maybe',
-        OPTIONAL: 'optional'
-    });
-
-    // @TODO rename (too clunky)
-    const DescriptorTypeValue = new Enum({
-        ARRAY: 'array',
-        FACTORY: 'factory',
-        PRIMITIVE: 'primitive'
-    });
-
-    class Blueprint {
-        constructor(specification = {}) {
-            this.specification = specification;
-        }
-
-        make(raw = {}) {
-            const result = {};
-            const makeNullObject = empty(raw);
-
-            Object.entries(this.specification).forEach(([key, descriptor]) => {
-                descriptor = descriptor.eject();
-                descriptor.setKey(key);
-                const extractor = new Extractor(descriptor);
-
-                if (makeNullObject) {
-                    result[key] = extractor.makeNullValue();
-                    return;
-                }
-
-                const value = extractor.extract(raw);
-                if (value !== MissingKey) result[key] = extractor.extract(raw);
-            });
-
-            return result;
+        make(e = {}) {
+            const r = {},
+                s = t(e);
+            return (
+                Object.entries(this.specification).forEach(([t, i]) => {
+                    (i = i.eject()).setKey(t);
+                    const n = new a(i);
+                    if (s) return void (r[t] = n.makeNullValue());
+                    n.extract(e) !== o && (r[t] = n.extract(e));
+                }),
+                r
+            );
         }
     }
-
-    /**
-     * Knows how to use a descriptor to extract a value from a raw object.
-     */
-    class Extractor {
-        constructor(descriptor) {
-            this.descriptor = descriptor.eject();
-            return this;
+    class a {
+        constructor(e) {
+            return (this.descriptor = e.eject()), this;
         }
-
-        /**
-         * Takes a raw value or object. Unpacks the value to be converted when a key is present. Runs the conversion.
-         */
-        extract(raw) {
-            this.descriptor.checkIsReady();
-
-            if (typeof raw === 'object' && !raw.hasOwnProperty(this.descriptor.key)) {
-                if (this.descriptor.hasModifier(Modifier.MAYBE)) return null;
-                if (this.descriptor.hasModifier(Modifier.OPTIONAL)) return MissingKey;
-                throw new MissingKeyError(this.descriptor.key);
+        extract(e) {
+            if ((this.descriptor.checkIsReady(), 'object' == typeof e && !e.hasOwnProperty(this.descriptor.key))) {
+                if (this.descriptor.hasModifier(c.MAYBE)) return null;
+                if (this.descriptor.hasModifier(c.OPTIONAL)) return o;
+                throw new i(this.descriptor.key);
             }
-
-            return this.convert(this.descriptor.hasKey ? raw[this.descriptor.key] : raw);
+            return this.convert(this.descriptor.hasKey ? e[this.descriptor.key] : e);
         }
-
-        /**
-         * Converts a value according to descriptor. Applies mutator when applicable.
-         */
-        convert(value) {
-            const caster = this.applyMutator(this.caster);
-
-            return this.descriptor.descriptorTypeValue === DescriptorTypeValue.ARRAY ||
-                this.descriptor.descriptorTypeValue === DescriptorTypeValue.FACTORY
-                ? value.map((x) => caster(x))
-                : caster(value);
+        convert(e) {
+            const t = this.applyMutator(this.caster);
+            return this.descriptor.descriptorTypeValue === u.ARRAY || this.descriptor.descriptorTypeValue === u.FACTORY
+                ? e.map((e) => t(e))
+                : t(e);
         }
-
         get caster() {
-            if (this.descriptor.descriptorTypeValue === DescriptorTypeValue.ARRAY)
-                return (raw) => new Extractor(this.descriptor.type).extract(raw);
-
-            return this.descriptor.type;
+            return this.descriptor.descriptorTypeValue === u.ARRAY
+                ? (e) => new a(this.descriptor.type).extract(e)
+                : this.descriptor.type;
         }
-
-        applyMutator(caster) {
-            return this.descriptor.hasMutator ? (raw) => caster(this.descriptor.mutator(raw)) : caster;
+        applyMutator(e) {
+            return this.descriptor.hasMutator ? (t) => e(this.descriptor.mutator(t)) : e;
         }
-
         makeNullValue() {
-            return this.convert(this.descriptor.descriptorTypeValue === DescriptorTypeValue.ARRAY ? [] : '');
+            return this.convert(this.descriptor.descriptorTypeValue === u.ARRAY ? [] : '');
         }
     }
-
-    class Descriptor extends Function {
-        constructor(type = null, ejected = false) {
-            super();
-            this.type = type;
-            this.key = null;
-            this.mutator = null;
-            this.ejected = ejected;
-            this.modifiers = [];
-
-            return new Proxy(this, {
-                get: (target, prop, receiver) => {
-                    if (Reflect.has(target, prop)) return Reflect.get(target, prop, receiver);
-
-                    if (Modifier.has(prop)) {
-                        target = target.eject();
-                        target.addModifier(prop);
-                        return target;
-                    }
-
-                    if (typeof prop === 'string') throw new IllegalModifierError(prop);
-                },
-                apply: (target, thisArg, args) => {
-                    target = target.eject();
-                    return target.call(...args);
-                }
-            });
+    class l extends Function {
+        constructor(e = null, t = !1) {
+            return (
+                super(),
+                (this.type = e),
+                (this.key = null),
+                (this.mutator = null),
+                (this.ejected = t),
+                (this.modifiers = []),
+                new Proxy(this, {
+                    get: (e, t, r) => {
+                        if (Reflect.has(e, t)) return Reflect.get(e, t, r);
+                        if (c.has(t)) return (e = e.eject()).addModifier(t), e;
+                        if ('string' == typeof t) throw new n(t);
+                    },
+                    apply: (e, t, r) => (e = e.eject()).call(...r)
+                })
+            );
         }
-
-        // when Descriptor is called as a function, examples: $String(...), $Many(...), etc.
-        call(...args) {
-            // nesting of descriptors, example: $Many($String, ...)
-            if (args.length > 0 && (args[0] instanceof Descriptor || args[0] instanceof Function))
-                this.setType(args.shift());
-
-            if (args.length > 0) this.setKey(args.shift());
-            if (args.length > 0) this.setMutator(args.shift());
-
-            return this;
+        call(...e) {
+            return (
+                e.length > 0 && (e[0] instanceof l || e[0] instanceof Function) && this.setType(e.shift()),
+                e.length > 0 && this.setKey(e.shift()),
+                e.length > 0 && this.setMutator(e.shift()),
+                this
+            );
         }
-
-        setType(type) {
-            this.type = type;
-            this.checkType();
-            return this;
+        setType(e) {
+            return (this.type = e), this.checkType(), this;
         }
-
-        setKey(key) {
-            assert(typeof key === 'string', `Key should be a string, but it is not.`);
-
-            if (empty(this.key)) this.key = key;
-            return this;
+        setKey(e) {
+            return (
+                r('string' == typeof e, 'Key should be a string, but it is not.'), t(this.key) && (this.key = e), this
+            );
         }
-
-        setMutator(mutator) {
-            assert(typeof mutator === 'function', `Mutator should be a function, but it is not.`);
-
-            this.mutator = mutator;
-            return this;
+        setMutator(e) {
+            return r('function' == typeof e, 'Mutator should be a function, but it is not.'), (this.mutator = e), this;
         }
-
-        addModifier(modifiers) {
-            this.modifiers.push(modifiers);
+        addModifier(e) {
+            this.modifiers.push(e);
         }
-
         checkType() {
-            assert(!empty(this.type), 'Descriptor type is not set.');
-            assert(this.descriptorTypeValue !== null, `The type of the descriptor is not valid.`);
+            r(!t(this.type), 'Descriptor type is not set.'),
+                r(null !== this.descriptorTypeValue, 'The type of the descriptor is not valid.');
         }
-
         get hasKey() {
-            return this.key !== null;
+            return null !== this.key;
         }
-
-        hasModifier(modifier) {
-            return this.modifiers.includes(modifier);
+        hasModifier(e) {
+            return this.modifiers.includes(e);
         }
-
         get descriptorTypeValue() {
-            if ([String, Boolean, Number].includes(this.type)) return DescriptorTypeValue.PRIMITIVE;
-            if (this.type instanceof Descriptor) return DescriptorTypeValue.ARRAY;
-            if (this.type instanceof Function) return DescriptorTypeValue.FACTORY;
-            return null;
+            return [String, Boolean, Number].includes(this.type)
+                ? u.PRIMITIVE
+                : this.type instanceof l
+                ? u.ARRAY
+                : this.type instanceof Function
+                ? u.FACTORY
+                : null;
         }
-
         get hasMutator() {
-            return typeof this.mutator === 'function';
+            return 'function' == typeof this.mutator;
         }
-
         checkIsReady() {
-            assert(this.ejected, `Descriptor has not been ejected.`);
-            this.checkType();
+            r(this.ejected, 'Descriptor has not been ejected.'), this.checkType();
         }
-
-        /**
-         * Vanilla descriptors like $String or $Number might be incomplete and require attributes to be set from inside the
-         * library (example: key). If we set these attributes just like this, we pollute the public object, which is why we
-         * have to create a new instance.
-         */
         eject() {
-            if (!this.ejected) return new Descriptor(this.type, true);
-
-            return this;
+            return this.ejected ? this : new l(this.type, !0);
         }
     }
-
-    const $String = new Descriptor(String);
-    const $Number = new Descriptor(Number);
-    const $Boolean = new Descriptor(Boolean);
-    const $Many = new Descriptor();
-
-    const blueprint = (specification) => new Blueprint(specification);
-    const factory = (specification) => (raw) => blueprint(specification).make(raw);
-
-    exports.$Boolean = $Boolean;
-    exports.$Many = $Many;
-    exports.$Number = $Number;
-    exports.$String = $String;
-    exports.Blueprint = Blueprint;
-    exports.IllegalModifierError = IllegalModifierError;
-    exports.MissingKeyError = MissingKeyError;
-    exports.blueprint = blueprint;
-    exports.factory = factory;
-
-    Object.defineProperty(exports, '__esModule', { value: true });
+    const p = new l(String),
+        d = new l(Number),
+        f = new l(Boolean),
+        y = new l(),
+        m = (e) => new h(e);
+    (e.$Boolean = f),
+        (e.$Many = y),
+        (e.$Number = d),
+        (e.$String = p),
+        (e.Blueprint = h),
+        (e.IllegalModifierError = n),
+        (e.MissingKeyError = i),
+        (e.blueprint = m),
+        (e.factory = (e) => (t) => m(e).make(t)),
+        Object.defineProperty(e, '__esModule', { value: !0 });
 });
