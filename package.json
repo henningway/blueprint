@@ -7,6 +7,7 @@
         "watch": "rollup -c -w",
         "build": "rollup --config",
         "test": "jest",
+        "test:build": "npm run build && npm run test",
         "prettier": "prettier --write .",
         "prepare": "husky install"
     },

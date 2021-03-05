@@ -1,7 +1,7 @@
 import { Enum, empty, assert } from './helpers';
 import { MissingKeyError, IllegalModifierError } from './errors';
 
-const MissingKey = Symbol('missing key');
+const MissingKeyOrValue = Symbol('missing key or value');
 
 const Modifier = new Enum({
     MAYBE: 'maybe',
@@ -35,7 +35,7 @@ class Blueprint {
             }
 
             const value = extractor.extract(raw);
-            if (value !== MissingKey) result[key] = extractor.extract(raw);
+            if (value !== MissingKeyOrValue) result[key] = extractor.extract(raw);
         });
 
         return result;
@@ -59,7 +59,7 @@ class Extractor {
 
         if (typeof raw === 'object' && !raw.hasOwnProperty(this.descriptor.key)) {
             if (this.descriptor.hasModifier(Modifier.MAYBE)) return null;
-            if (this.descriptor.hasModifier(Modifier.OPTIONAL)) return MissingKey;
+            if (this.descriptor.hasModifier(Modifier.OPTIONAL)) return MissingKeyOrValue;
             throw new MissingKeyError(this.descriptor.key);
         }
 
@@ -70,6 +70,11 @@ class Extractor {
      * Converts a value according to descriptor. Applies mutator when applicable.
      */
     convert(value) {
+        if ([null, undefined].includes(value)) {
+            if (this.descriptor.hasModifier(Modifier.MAYBE)) return null;
+            if (this.descriptor.hasModifier(Modifier.OPTIONAL)) return MissingKeyOrValue;
+        }
+
         const caster = this.applyMutator(this.caster);
 
         return this.descriptor.descriptorTypeValue === DescriptorTypeValue.ARRAY ||
