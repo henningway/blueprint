@@ -1,6 +1,6 @@
 {
     "name": "@henningway/blueprint",
-    "version": "0.1.2",
+    "version": "0.1.3",
     "description": "Declarative object conversion for JavaScript.",
     "main": "dist/index.js",
     "scripts": {
