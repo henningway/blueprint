@@ -1,6 +1,7 @@
 const {
     blueprint,
     factory,
+    $Any,
     $String,
     $Number,
     $Boolean,
@@ -12,6 +13,16 @@ const {
 describe('Blueprint', () => {
     test('empty blueprint provides empty object', () => {
         expect(blueprint().make()).toStrictEqual({});
+    });
+
+    it('can extract anything', () => {
+        const obscureBlueprint = blueprint({
+            x: $Any
+        });
+
+        expect(obscureBlueprint.make({ x: {} })).toStrictEqual({
+            x: {}
+        });
     });
 
     it('can extract strings', () => {

@@ -9,6 +9,7 @@ const Modifier = new Enum({
 });
 
 const DescriptorType = new Enum({
+    ANY: 'ANY', // CasterType.FACTORY (identity function)
     STRING: 'STRING', // CasterType.PRIMITIVE
     NUMBER: 'NUMBER', // CasterType.PRIMITIVE
     BOOLEAN: 'BOOLEAN', // CasterType.PRIMITIVE
@@ -16,6 +17,7 @@ const DescriptorType = new Enum({
 });
 
 const CasterType = new Enum({
+    PASS_THROUGH: 'PASS_THROUGH',
     PRIMITIVE: 'PRIMITIVE',
     DESCRIPTOR: 'DESCRIPTOR',
     FACTORY: 'FACTORY'
@@ -114,6 +116,9 @@ class Descriptor extends Function {
         this.modifiers = [];
 
         switch (type) {
+            case DescriptorType.ANY:
+                this.caster = (x) => x;
+                break;
             case DescriptorType.STRING:
                 this.caster = String;
                 break;
@@ -235,6 +240,7 @@ class Descriptor extends Function {
     }
 }
 
+const $Any = new Descriptor(DescriptorType.ANY);
 const $String = new Descriptor(DescriptorType.STRING);
 const $Number = new Descriptor(DescriptorType.NUMBER);
 const $Boolean = new Descriptor(DescriptorType.BOOLEAN);
@@ -243,4 +249,15 @@ const $Many = new Descriptor(DescriptorType.ARRAY);
 const blueprint = (specification) => new Blueprint(specification);
 const factory = (specification) => (raw) => blueprint(specification).make(raw);
 
-export { Blueprint, blueprint, factory, $String, $Number, $Boolean, $Many, MissingKeyError, IllegalModifierError };
+export {
+    Blueprint,
+    blueprint,
+    factory,
+    $Any,
+    $String,
+    $Number,
+    $Boolean,
+    $Many,
+    MissingKeyError,
+    IllegalModifierError
+};
