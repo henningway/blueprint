@@ -15,20 +15,8 @@ describe('Blueprint', () => {
         expect(blueprint().make()).toStrictEqual({});
     });
 
-    it('can extract anything', () => {
-        const obscureBlueprint = blueprint({
-            x: $Any
-        });
-
-        expect(obscureBlueprint.make({ x: {} })).toStrictEqual({
-            x: {}
-        });
-    });
-
     it('can extract strings', () => {
-        const bookBlueprint = blueprint({
-            title: $String
-        });
+        const bookBlueprint = blueprint({ title: $String });
 
         expect(bookBlueprint.make({ title: 'The Name of the Wind' })).toStrictEqual({
             title: 'The Name of the Wind'
@@ -36,18 +24,14 @@ describe('Blueprint', () => {
     });
 
     it('can extract numbers', () => {
-        const bookBlueprint = blueprint({
-            pages: $Number
-        });
+        const bookBlueprint = blueprint({ pages: $Number });
 
         expect(bookBlueprint.make({ pages: 662 })).toStrictEqual({ pages: 662 });
         expect(bookBlueprint.make({ pages: '662' })).toStrictEqual({ pages: 662 });
     });
 
     it('can extract booleans', () => {
-        const bookBlueprint = blueprint({
-            hardCover: $Boolean
-        });
+        const bookBlueprint = blueprint({ hardCover: $Boolean });
 
         expect(bookBlueprint.make({ hardCover: true })).toStrictEqual({ hardCover: true });
         expect(bookBlueprint.make({ hardCover: false })).toStrictEqual({ hardCover: false });
@@ -55,10 +39,14 @@ describe('Blueprint', () => {
         expect(bookBlueprint.make({ hardCover: 'false' })).toStrictEqual({ hardCover: true }); // @TODO decide whether library should deviate from javascript default behaviour
     });
 
+    it('can pass through anything', () => {
+        const obscureBlueprint = blueprint({ x: $Any });
+
+        expect(obscureBlueprint.make({ x: {} })).toStrictEqual({ x: {} });
+    });
+
     it('can extract arrays', () => {
-        const bookBlueprint = blueprint({
-            genres: $Many($String)
-        });
+        const bookBlueprint = blueprint({ genres: $Many($String) });
 
         expect(bookBlueprint.make({ genres: ['fantasy', 'fiction'] })).toStrictEqual({
             genres: ['fantasy', 'fiction']
@@ -69,12 +57,14 @@ describe('Blueprint', () => {
         const bookBlueprint = blueprint({
             title: $String.maybe,
             pages: $Number.maybe,
+            meta: $Any.maybe,
             genres: $Many($String).maybe
         });
 
         expect(bookBlueprint.make({ title: 'The Subtle Art of Not Giving a F*ck', pages: null })).toStrictEqual({
             title: 'The Subtle Art of Not Giving a F*ck',
             pages: null,
+            meta: null,
             genres: null
         });
     });
@@ -83,7 +73,8 @@ describe('Blueprint', () => {
         const bookBlueprint = blueprint({
             title: $String.optional,
             pages: $Number.optional,
-            price: $Number.optional
+            meta: $Any.optional,
+            genres: $Many($String).optional
         });
 
         expect(bookBlueprint.make({ title: 'The Subtle Art of Not Giving a F*ck', pages: null })).toStrictEqual({
@@ -96,7 +87,8 @@ describe('Blueprint', () => {
             name: $String('title'),
             pageCount: $Number('pages'),
             isHardCover: $Boolean('hardCover'),
-            categories: $Many($String, 'genres')
+            categories: $Many($String, 'genres'),
+            metaData: $Any('meta')
         });
 
         expect(
@@ -104,13 +96,19 @@ describe('Blueprint', () => {
                 title: 'The Name of the Wind',
                 pages: 662,
                 hardCover: true,
-                genres: ['fantasy', 'fiction']
+                genres: ['fantasy', 'fiction'],
+                meta: {
+                    tags: ['continued', 'ongoing']
+                }
             })
         ).toStrictEqual({
             name: 'The Name of the Wind',
             pageCount: 662,
             isHardCover: true,
-            categories: ['fantasy', 'fiction']
+            categories: ['fantasy', 'fiction'],
+            metaData: {
+                tags: ['continued', 'ongoing']
+            }
         });
     });
 
@@ -138,9 +136,7 @@ describe('Blueprint', () => {
     });
 
     test('maybe takes precedence over optional', () => {
-        const bookBlueprint = blueprint({
-            price: $Number.optional.maybe
-        });
+        const bookBlueprint = blueprint({ price: $Number.optional.maybe });
 
         expect(bookBlueprint.make({ title: 'The Name of the Wind' })).toStrictEqual({ price: null });
         expect(bookBlueprint.make()).toStrictEqual({ price: 0 }); // @TODO currently null objects ignore modifiers
@@ -151,6 +147,7 @@ describe('Blueprint', () => {
             title: $String,
             pages: $Number,
             hardCover: $Boolean,
+            meta: $Any,
             genres: $Many($String)
         });
 
@@ -158,19 +155,19 @@ describe('Blueprint', () => {
             title: '',
             pages: 0,
             hardCover: false,
+            meta: null,
             genres: []
         });
     });
 
     it('revolts when a key is missing', () => {
-        const bookBlueprint = blueprint({
-            hardCover: $Boolean
-        });
+        const bookBlueprint = blueprint({ hardCover: $Boolean });
+
         expect(() => bookBlueprint.make({ title: 'The Name of the Wind' })).toThrow(MissingKeyError);
     });
 
     it('revolts when an illegal modifier is used', () => {
-        expect(() => blueprint({ title: $String.voldemort })).toThrow(IllegalModifierError);
+        expect(() => blueprint({ title: $Any.voldemort })).toThrow(IllegalModifierError);
     });
 
     it('can be nested', () => {

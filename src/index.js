@@ -101,7 +101,18 @@ class Extractor {
     }
 
     makeNullValue() {
-        return this.convert(this.descriptor.casterType === CasterType.DESCRIPTOR ? [] : '');
+        const value = (() => {
+            switch (this.descriptor.type) {
+                case DescriptorType.ARRAY:
+                    return [];
+                case DescriptorType.ANY:
+                    return null;
+                default:
+                    return '';
+            }
+        })();
+
+        return this.convert(value);
     }
 }
 
