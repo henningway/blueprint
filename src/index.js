@@ -66,6 +66,7 @@ class Extractor {
         this.descriptor.checkIsReady();
 
         if (typeof raw === 'object' && !raw.hasOwnProperty(this.descriptor.key)) {
+            if (this.descriptor.hasDefault) return this.descriptor.defaultValue;
             if (this.descriptor.hasModifier(Modifier.MAYBE)) return null;
             if (this.descriptor.hasModifier(Modifier.OPTIONAL)) return MissingKeyOrValue;
             throw new MissingKeyError(this.descriptor.key);
@@ -102,6 +103,8 @@ class Extractor {
 
     makeNullValue() {
         const value = (() => {
+            if (this.descriptor.hasDefault) return this.descriptor.defaultValue;
+
             switch (this.descriptor.type) {
                 case DescriptorType.ARRAY:
                     return [];
@@ -117,13 +120,16 @@ class Extractor {
 }
 
 class Descriptor extends Function {
-    constructor(type, ejected = false) {
+    constructor(type, defaultValue = undefined, ejected = false) {
         super();
+
         this.type = type;
+        this.defaultValue = defaultValue;
+        this.ejected = ejected;
+
         this.key = null;
         this.caster = null;
         this.mutator = null;
-        this.ejected = ejected;
         this.modifiers = [];
 
         switch (type) {
@@ -147,14 +153,25 @@ class Descriptor extends Function {
 
                 if (Modifier.has(prop)) {
                     target = target.eject();
+
                     target.addModifier(prop);
+
                     return target;
+                }
+
+                if (prop === 'default') {
+                    target = target.eject();
+                    return (value) => {
+                        target.defaultValue = value;
+                        return target;
+                    };
                 }
 
                 if (typeof prop === 'string') throw new IllegalModifierError(prop);
             },
             apply: (target, thisArg, args) => {
                 if (target.ejected) return Reflect.apply(target, thisArg, args);
+
                 target = target.eject();
                 return target.call(...args);
             }
@@ -240,13 +257,17 @@ class Descriptor extends Function {
         this.checkCaster();
     }
 
+    get hasDefault() {
+        return this.defaultValue !== undefined;
+    }
+
     /**
      * Vanilla descriptors like $String or $Number might be incomplete and require attributes to be set from inside the
      * library (example: key). If we set these attributes just like this, we pollute the public object, which is why we
      * have to create a new instance.
      */
     eject() {
-        if (!this.ejected) return new Descriptor(this.type, true);
+        if (!this.ejected) return new Descriptor(this.type, this.defaultValue, true);
 
         return this;
     }

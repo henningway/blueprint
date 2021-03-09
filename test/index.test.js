@@ -142,6 +142,22 @@ describe('Blueprint', () => {
         expect(bookBlueprint.make()).toStrictEqual({ price: 0 }); // @TODO currently null objects ignore modifiers
     });
 
+    it('can provide defaults', () => {
+        const bookBlueprint = blueprint({
+            title: $String.default('A Book'),
+            pages: $Number.default(100),
+            hardCover: $Boolean.default(true),
+            genres: $Many($String).default(['novel'])
+        });
+
+        expect(bookBlueprint.make({})).toStrictEqual({
+            title: 'A Book',
+            pages: 100,
+            hardCover: true,
+            genres: ['novel']
+        });
+    });
+
     it('can create null objects', () => {
         const bookBlueprint = blueprint({
             title: $String,
