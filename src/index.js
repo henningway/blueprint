@@ -8,9 +8,8 @@ const Modifier = new Enum({
     OPTIONAL: 'optional'
 });
 
-// @TODO rename (too clunky)
-const DescriptorTypeValue = new Enum({
-    ARRAY: 'array',
+const CasterType = new Enum({
+    DESCRIPTOR: 'descriptor',
     FACTORY: 'factory',
     PRIMITIVE: 'primitive'
 });
@@ -77,17 +76,16 @@ class Extractor {
 
         const caster = this.applyMutator(this.caster);
 
-        return this.descriptor.descriptorTypeValue === DescriptorTypeValue.ARRAY ||
-            this.descriptor.descriptorTypeValue === DescriptorTypeValue.FACTORY
+        return this.descriptor.casterType === CasterType.DESCRIPTOR || this.descriptor.casterType === CasterType.FACTORY
             ? value.map((x) => caster(x))
             : caster(value);
     }
 
     get caster() {
-        if (this.descriptor.descriptorTypeValue === DescriptorTypeValue.ARRAY)
-            return (raw) => new Extractor(this.descriptor.type).extract(raw);
+        if (this.descriptor.casterType === CasterType.DESCRIPTOR)
+            return (raw) => new Extractor(this.descriptor.caster).extract(raw);
 
-        return this.descriptor.type;
+        return this.descriptor.caster;
     }
 
     applyMutator(caster) {
@@ -95,14 +93,14 @@ class Extractor {
     }
 
     makeNullValue() {
-        return this.convert(this.descriptor.descriptorTypeValue === DescriptorTypeValue.ARRAY ? [] : '');
+        return this.convert(this.descriptor.casterType === CasterType.DESCRIPTOR ? [] : '');
     }
 }
 
 class Descriptor extends Function {
-    constructor(type = null, ejected = false) {
+    constructor(caster = null, ejected = false) {
         super();
-        this.type = type;
+        this.caster = caster;
         this.key = null;
         this.mutator = null;
         this.ejected = ejected;
@@ -131,7 +129,7 @@ class Descriptor extends Function {
     call(...args) {
         // nesting of descriptors, example: $Many($String, ...)
         if (args.length > 0 && (args[0] instanceof Descriptor || args[0] instanceof Function))
-            this.setType(args.shift());
+            this.setCaster(args.shift());
 
         if (args.length > 0) this.setKey(args.shift());
         if (args.length > 0) this.setMutator(args.shift());
@@ -139,9 +137,9 @@ class Descriptor extends Function {
         return this;
     }
 
-    setType(type) {
-        this.type = type;
-        this.checkType();
+    setCaster(caster) {
+        this.caster = caster;
+        this.checkCaster();
         return this;
     }
 
@@ -163,9 +161,9 @@ class Descriptor extends Function {
         this.modifiers.push(modifiers);
     }
 
-    checkType() {
-        assert(!empty(this.type), 'Descriptor type is not set.');
-        assert(this.descriptorTypeValue !== null, `The type of the descriptor is not valid.`);
+    checkCaster() {
+        assert(!empty(this.caster), 'Descriptor caster is not set.');
+        assert(this.casterType !== null, `The caster of the descriptor is not valid.`);
     }
 
     get hasKey() {
@@ -176,10 +174,10 @@ class Descriptor extends Function {
         return this.modifiers.includes(modifier);
     }
 
-    get descriptorTypeValue() {
-        if ([String, Boolean, Number].includes(this.type)) return DescriptorTypeValue.PRIMITIVE;
-        if (this.type instanceof Descriptor) return DescriptorTypeValue.ARRAY;
-        if (this.type instanceof Function) return DescriptorTypeValue.FACTORY;
+    get casterType() {
+        if ([String, Boolean, Number].includes(this.caster)) return CasterType.PRIMITIVE;
+        if (this.caster instanceof Descriptor) return CasterType.DESCRIPTOR;
+        if (this.caster instanceof Function) return CasterType.FACTORY;
         return null;
     }
 
@@ -189,7 +187,7 @@ class Descriptor extends Function {
 
     checkIsReady() {
         assert(this.ejected, `Descriptor has not been ejected.`);
-        this.checkType();
+        this.checkCaster();
     }
 
     /**
@@ -198,7 +196,7 @@ class Descriptor extends Function {
      * have to create a new instance.
      */
     eject() {
-        if (!this.ejected) return new Descriptor(this.type, true);
+        if (!this.ejected) return new Descriptor(this.caster, true);
 
         return this;
     }
