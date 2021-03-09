@@ -154,6 +154,7 @@ class Descriptor extends Function {
                 if (typeof prop === 'string') throw new IllegalModifierError(prop);
             },
             apply: (target, thisArg, args) => {
+                if (target.ejected) return Reflect.apply(target, thisArg, args);
                 target = target.eject();
                 return target.call(...args);
             }
