@@ -8,10 +8,17 @@ const Modifier = new Enum({
     OPTIONAL: 'optional'
 });
 
+const DescriptorType = new Enum({
+    STRING: 'STRING', // CasterType.PRIMITIVE
+    NUMBER: 'NUMBER', // CasterType.PRIMITIVE
+    BOOLEAN: 'BOOLEAN', // CasterType.PRIMITIVE
+    ARRAY: 'ARRAY' // CasterType.DESCRIPTOR || CasterType.FACTORY
+});
+
 const CasterType = new Enum({
-    DESCRIPTOR: 'descriptor',
-    FACTORY: 'factory',
-    PRIMITIVE: 'primitive'
+    PRIMITIVE: 'PRIMITIVE',
+    DESCRIPTOR: 'DESCRIPTOR',
+    FACTORY: 'FACTORY'
 });
 
 class Blueprint {
@@ -76,15 +83,14 @@ class Extractor {
 
         const caster = this.applyMutator(this.caster);
 
-        return this.descriptor.casterType === CasterType.DESCRIPTOR || this.descriptor.casterType === CasterType.FACTORY
-            ? value.map((x) => caster(x))
-            : caster(value);
+        return this.descriptor.type === DescriptorType.ARRAY ? value.map((x) => caster(x)) : caster(value);
     }
 
     get caster() {
         if (this.descriptor.casterType === CasterType.DESCRIPTOR)
             return (raw) => new Extractor(this.descriptor.caster).extract(raw);
 
+        // both CasterType.PRIMITIVE and CasterType.FACTORY are meant to be callable just like that
         return this.descriptor.caster;
     }
 
@@ -98,13 +104,26 @@ class Extractor {
 }
 
 class Descriptor extends Function {
-    constructor(caster = null, ejected = false) {
+    constructor(type, ejected = false) {
         super();
-        this.caster = caster;
+        this.type = type;
         this.key = null;
+        this.caster = null;
         this.mutator = null;
         this.ejected = ejected;
         this.modifiers = [];
+
+        switch (type) {
+            case DescriptorType.STRING:
+                this.caster = String;
+                break;
+            case DescriptorType.NUMBER:
+                this.caster = Number;
+                break;
+            case DescriptorType.BOOLEAN:
+                this.caster = Boolean;
+                break;
+        }
 
         return new Proxy(this, {
             get: (target, prop, receiver) => {
@@ -128,12 +147,20 @@ class Descriptor extends Function {
     // when Descriptor is called as a function, examples: $String(...), $Many(...), etc.
     call(...args) {
         // nesting of descriptors, example: $Many($String, ...)
-        if (args.length > 0 && (args[0] instanceof Descriptor || args[0] instanceof Function))
-            this.setCaster(args.shift());
+        if (args.length > 0) {
+            if (args[0] instanceof Descriptor) this.setType(DescriptorType.ARRAY).setCaster(args.shift());
+            else if (args[0] instanceof Function) this.setType(DescriptorType.ARRAY).setCaster(args.shift());
+        }
 
         if (args.length > 0) this.setKey(args.shift());
         if (args.length > 0) this.setMutator(args.shift());
 
+        return this;
+    }
+
+    setType(type) {
+        this.type = type;
+        this.checkType();
         return this;
     }
 
@@ -161,9 +188,14 @@ class Descriptor extends Function {
         this.modifiers.push(modifiers);
     }
 
+    checkType() {
+        assert(!empty(this.type), 'Descriptor type is not set.');
+        assert(DescriptorType.has(this.type), 'The descriptor type is not valid.');
+    }
+
     checkCaster() {
-        assert(!empty(this.caster), 'Descriptor caster is not set.');
-        assert(this.casterType !== null, `The caster of the descriptor is not valid.`);
+        assert(!empty(this.caster), 'Caster is not set.');
+        assert(CasterType.has(this.casterType), 'The caster is not valid.');
     }
 
     get hasKey() {
@@ -178,7 +210,7 @@ class Descriptor extends Function {
         if ([String, Boolean, Number].includes(this.caster)) return CasterType.PRIMITIVE;
         if (this.caster instanceof Descriptor) return CasterType.DESCRIPTOR;
         if (this.caster instanceof Function) return CasterType.FACTORY;
-        return null;
+        throw new Error('Caster is not set.');
     }
 
     get hasMutator() {
@@ -187,6 +219,7 @@ class Descriptor extends Function {
 
     checkIsReady() {
         assert(this.ejected, `Descriptor has not been ejected.`);
+        this.checkType();
         this.checkCaster();
     }
 
@@ -196,16 +229,16 @@ class Descriptor extends Function {
      * have to create a new instance.
      */
     eject() {
-        if (!this.ejected) return new Descriptor(this.caster, true);
+        if (!this.ejected) return new Descriptor(this.type, true);
 
         return this;
     }
 }
 
-const $String = new Descriptor(String);
-const $Number = new Descriptor(Number);
-const $Boolean = new Descriptor(Boolean);
-const $Many = new Descriptor();
+const $String = new Descriptor(DescriptorType.STRING);
+const $Number = new Descriptor(DescriptorType.NUMBER);
+const $Boolean = new Descriptor(DescriptorType.BOOLEAN);
+const $Many = new Descriptor(DescriptorType.ARRAY);
 
 const blueprint = (specification) => new Blueprint(specification);
 const factory = (specification) => (raw) => blueprint(specification).make(raw);
