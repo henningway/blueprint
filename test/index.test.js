@@ -186,7 +186,25 @@ describe('Blueprint', () => {
         expect(() => blueprint({ title: $Any.voldemort })).toThrow(IllegalModifierError);
     });
 
-    it('can be nested', () => {
+    it('can be nested with objects', () => {
+        const Book = factory({ title: $String, author: { name: $String } });
+
+        expect(
+            Book({
+                title: 'The Name of the Wind',
+                author: {
+                    name: 'Patrick Rothfuss'
+                }
+            })
+        ).toStrictEqual({
+            title: 'The Name of the Wind',
+            author: {
+                name: 'Patrick Rothfuss'
+            }
+        });
+    });
+
+    it('can be nested with many', () => {
         const Book = factory({ title: $String });
         const Shelve = factory({ books: $Many(Book) });
 

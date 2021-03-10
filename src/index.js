@@ -33,9 +33,12 @@ class Blueprint {
         const makeNullObject = empty(raw);
 
         Object.entries(this.specification).forEach(([key, descriptor]) => {
-            descriptor = descriptor.eject();
-            descriptor.setKey(key);
-            const extractor = new Extractor(descriptor);
+            if (typeof descriptor === 'object') {
+                result[key] = blueprint(descriptor).make(raw[key]);
+                return;
+            }
+
+            const extractor = new Extractor(descriptor.eject().setKey(key));
 
             if (makeNullObject) {
                 result[key] = extractor.makeNullValue();
@@ -43,7 +46,7 @@ class Blueprint {
             }
 
             const value = extractor.extract(raw);
-            if (value !== MissingKeyOrValue) result[key] = extractor.extract(raw);
+            if (value !== MissingKeyOrValue) result[key] = value;
         });
 
         return result;
@@ -153,9 +156,7 @@ class Descriptor extends Function {
 
                 if (Modifier.has(prop)) {
                     target = target.eject();
-
                     target.addModifier(prop);
-
                     return target;
                 }
 
@@ -205,14 +206,14 @@ class Descriptor extends Function {
     }
 
     setKey(key) {
-        assert(typeof key === 'string', `Key should be a string, but it is not.`);
+        assert(typeof key === 'string', 'Key should be a string, but it is not.');
 
         if (empty(this.key)) this.key = key;
         return this;
     }
 
     setMutator(mutator) {
-        assert(typeof mutator === 'function', `Mutator should be a function, but it is not.`);
+        assert(typeof mutator === 'function', 'Mutator should be a function, but it is not.');
 
         this.mutator = mutator;
         return this;
@@ -252,7 +253,7 @@ class Descriptor extends Function {
     }
 
     checkIsReady() {
-        assert(this.ejected, `Descriptor has not been ejected.`);
+        assert(this.ejected, 'Descriptor has not been ejected.');
         this.checkType();
         this.checkCaster();
     }
