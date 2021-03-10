@@ -53,6 +53,67 @@ describe('Blueprint', () => {
         });
     });
 
+    it('can be nested with objects', () => {
+        const Book = factory({ title: $String, author: { name: $String, age: $Number } });
+
+        expect(
+            Book({
+                title: 'The Name of the Wind',
+                author: {
+                    name: 'Patrick Rothfuss',
+                    age: 42
+                }
+            })
+        ).toStrictEqual({
+            title: 'The Name of the Wind',
+            author: {
+                name: 'Patrick Rothfuss',
+                age: 42
+            }
+        });
+    });
+
+    it('can be nested with factory', () => {
+        const Book = factory({ title: $String, author: factory({ name: $String }) });
+
+        expect(
+            Book({
+                title: 'The Name of the Wind',
+                author: { name: 'Patrick Rothfuss' }
+            })
+        ).toStrictEqual({
+            title: 'The Name of the Wind',
+            author: { name: 'Patrick Rothfuss' }
+        });
+    });
+
+    it('can be nested with blueprint', () => {
+        const Book = factory({ title: $String, author: blueprint({ name: $String }) });
+
+        expect(
+            Book({
+                title: 'The Name of the Wind',
+                author: { name: 'Patrick Rothfuss' }
+            })
+        ).toStrictEqual({
+            title: 'The Name of the Wind',
+            author: { name: 'Patrick Rothfuss' }
+        });
+    });
+
+    it('can be nested with factory inside many', () => {
+        const Book = factory({ title: $String });
+        const Shelve = factory({ books: $Many(Book) });
+
+        expect(
+            Shelve({
+                books: [{ title: 'The Name of the Wind' }, { title: 'The Subtle Art of Not Giving a F*ck' }]
+            })
+        ).toStrictEqual({
+            books: [{ title: 'The Name of the Wind' }, { title: 'The Subtle Art of Not Giving a F*ck' }]
+        });
+    });
+
     it('allows for missing keys or values with maybe', () => {
         const bookBlueprint = blueprint({
             title: $String.maybe,
@@ -79,6 +140,16 @@ describe('Blueprint', () => {
 
         expect(bookBlueprint.make({ title: 'The Subtle Art of Not Giving a F*ck', pages: null })).toStrictEqual({
             title: 'The Subtle Art of Not Giving a F*ck'
+        });
+    });
+
+    // @TODO can we make this happen? probably have to find abstraction for descriptor proxy and use it for blueprints/factories as well
+    it.skip('can combine nesting with modifiers', () => {
+        const Book = factory({ title: $String, author: factory({ name: $String }).maybe });
+
+        expect(Book({ title: 'The Name of the Wind' })).toStrictEqual({
+            title: 'The Name of the Wind',
+            author: null
         });
     });
 
@@ -164,7 +235,8 @@ describe('Blueprint', () => {
             pages: $Number,
             hardCover: $Boolean,
             meta: $Any,
-            genres: $Many($String)
+            genres: $Many($String),
+            author: { name: $String }
         });
 
         expect(bookBlueprint.make()).toStrictEqual({
@@ -172,7 +244,8 @@ describe('Blueprint', () => {
             pages: 0,
             hardCover: false,
             meta: null,
-            genres: []
+            genres: [],
+            author: { name: '' }
         });
     });
 
@@ -184,37 +257,6 @@ describe('Blueprint', () => {
 
     it('revolts when an illegal modifier is used', () => {
         expect(() => blueprint({ title: $Any.voldemort })).toThrow(IllegalModifierError);
-    });
-
-    it('can be nested with objects', () => {
-        const Book = factory({ title: $String, author: { name: $String } });
-
-        expect(
-            Book({
-                title: 'The Name of the Wind',
-                author: {
-                    name: 'Patrick Rothfuss'
-                }
-            })
-        ).toStrictEqual({
-            title: 'The Name of the Wind',
-            author: {
-                name: 'Patrick Rothfuss'
-            }
-        });
-    });
-
-    it('can be nested with many', () => {
-        const Book = factory({ title: $String });
-        const Shelve = factory({ books: $Many(Book) });
-
-        expect(
-            Shelve({
-                books: [{ title: 'The Name of the Wind' }, { title: 'The Subtle Art of Not Giving a F*ck' }]
-            })
-        ).toStrictEqual({
-            books: [{ title: 'The Name of the Wind' }, { title: 'The Subtle Art of Not Giving a F*ck' }]
-        });
     });
 
     test('readme example', () => {

@@ -11,3 +11,10 @@ export const IllegalModifierError = class extends Error {
         this.name = 'IllegalModifierError';
     }
 };
+
+export const BlueprintSpecificationError = class extends Error {
+    constructor(type) {
+        super(`Blueprint specification contains illegal element of type ${type}.`);
+        this.name = 'BlueprintSpecificationError';
+    }
+};

@@ -1,5 +1,5 @@
 import { Enum, empty, assert } from './helpers';
-import { MissingKeyError, IllegalModifierError } from './errors';
+import { MissingKeyError, IllegalModifierError, BlueprintSpecificationError } from './errors';
 
 const MissingKeyOrValue = Symbol('missing key or value');
 
@@ -13,6 +13,7 @@ const DescriptorType = new Enum({
     STRING: 'STRING', // CasterType.PRIMITIVE
     NUMBER: 'NUMBER', // CasterType.PRIMITIVE
     BOOLEAN: 'BOOLEAN', // CasterType.PRIMITIVE
+    NESTED: 'NESTED', // CasterType.DESCRIPTOR || CasterType.FACTORY
     ARRAY: 'ARRAY' // CasterType.DESCRIPTOR || CasterType.FACTORY
 });
 
@@ -33,9 +34,11 @@ class Blueprint {
         const makeNullObject = empty(raw);
 
         Object.entries(this.specification).forEach(([key, descriptor]) => {
-            if (typeof descriptor === 'object') {
-                result[key] = blueprint(descriptor).make(raw[key]);
-                return;
+            if (!(descriptor instanceof Descriptor)) {
+                const type = typeof descriptor;
+                if (descriptor instanceof Blueprint || type === 'function' || type === 'object')
+                    descriptor = new Descriptor(DescriptorType.NESTED)(descriptor);
+                else throw new BlueprintSpecificationError(type);
             }
 
             const extractor = new Extractor(descriptor.eject().setKey(key));
@@ -183,19 +186,18 @@ class Descriptor extends Function {
     call(...args) {
         // nesting of descriptors, example: $Many($String, ...)
         if (args.length > 0) {
-            if (args[0] instanceof Descriptor) this.setType(DescriptorType.ARRAY).setCaster(args.shift());
-            else if (args[0] instanceof Function) this.setType(DescriptorType.ARRAY).setCaster(args.shift());
+            if (args[0] instanceof Descriptor) this.setCaster(args.shift());
+            else if (args[0] instanceof Function) this.setCaster(args.shift());
+            else if (args[0] instanceof Blueprint) {
+                const blueprint = args.shift();
+
+                this.setCaster((raw) => blueprint.make(raw));
+            } else if (typeof args[0] === 'object') this.setCaster(factory(args.shift()));
         }
 
         if (args.length > 0) this.setKey(args.shift());
         if (args.length > 0) this.setMutator(args.shift());
 
-        return this;
-    }
-
-    setType(type) {
-        this.type = type;
-        this.checkType();
         return this;
     }
 
