@@ -280,6 +280,7 @@ const $Any = new Descriptor(DescriptorType.ANY);
 const $String = new Descriptor(DescriptorType.STRING);
 const $Number = new Descriptor(DescriptorType.NUMBER);
 const $Boolean = new Descriptor(DescriptorType.BOOLEAN);
+const $One = new Descriptor(DescriptorType.NESTED);
 const $Many = new Descriptor(DescriptorType.ARRAY);
 
 const blueprint = (specification) => new Blueprint(specification);
@@ -293,6 +294,7 @@ export {
     $String,
     $Number,
     $Boolean,
+    $One,
     $Many,
     MissingKeyError,
     IllegalModifierError

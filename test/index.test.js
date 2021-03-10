@@ -5,6 +5,7 @@ const {
     $String,
     $Number,
     $Boolean,
+    $One,
     $Many,
     MissingKeyError,
     IllegalModifierError
@@ -143,9 +144,8 @@ describe('Blueprint', () => {
         });
     });
 
-    // @TODO can we make this happen? probably have to find abstraction for descriptor proxy and use it for blueprints/factories as well
-    it.skip('can combine nesting with modifiers', () => {
-        const Book = factory({ title: $String, author: factory({ name: $String }).maybe });
+    it('can combine nesting with modifiers', () => {
+        const Book = factory({ title: $String, author: $One(factory({ name: $String })).maybe });
 
         expect(Book({ title: 'The Name of the Wind' })).toStrictEqual({
             title: 'The Name of the Wind',
