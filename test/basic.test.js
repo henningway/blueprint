@@ -1,4 +1,4 @@
-const { blueprint, $Any, $String, $Number, $Boolean, $Many, MissingKeyError } = require('../dist');
+const { blueprint, $Any, $String, $Number, $Boolean, $One, $Many, MissingKeyError } = require('../dist');
 
 test('empty blueprint provides empty object', () => {
     expect(blueprint().make()).toStrictEqual({});
@@ -47,6 +47,7 @@ test('can provide alternate keys', () => {
         name: $String('title'),
         pageCount: $Number('pages'),
         isHardCover: $Boolean('hardCover'),
+        publishedAt: $One($String, 'publisher'),
         categories: $Many($String, 'genres'),
         metaData: $Any('meta')
     });
@@ -56,6 +57,7 @@ test('can provide alternate keys', () => {
             title: 'The Name of the Wind',
             pages: 662,
             hardCover: true,
+            publisher: 'DAW Books',
             genres: ['fantasy', 'fiction'],
             meta: {
                 tags: ['continued', 'ongoing']
@@ -65,6 +67,7 @@ test('can provide alternate keys', () => {
         name: 'The Name of the Wind',
         pageCount: 662,
         isHardCover: true,
+        publishedAt: 'DAW Books',
         categories: ['fantasy', 'fiction'],
         metaData: {
             tags: ['continued', 'ongoing']
@@ -77,6 +80,7 @@ it('can mutate values with mutator callbacks', () => {
         title: $String('title', (x) => x.toUpperCase()),
         long: $Boolean('pages', (x) => x > 500),
         softCover: $Boolean('hardCover', (x) => !x),
+        author: $One($String, 'author', (x) => 'REDACTED'),
         genres: $Many($String, 'genres', (x) => x + ' book')
     });
 
@@ -85,12 +89,14 @@ it('can mutate values with mutator callbacks', () => {
             title: 'The Name of the Wind',
             pages: 662,
             hardCover: true,
+            author: 'Patrick Rothfuss',
             genres: ['fantasy', 'fiction']
         })
     ).toStrictEqual({
         title: 'THE NAME OF THE WIND',
         long: true,
         softCover: false,
+        author: 'REDACTED',
         genres: ['fantasy book', 'fiction book']
     });
 });

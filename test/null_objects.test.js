@@ -1,4 +1,4 @@
-const { blueprint, $Any, $String, $Number, $Boolean, $Many } = require('../dist');
+const { blueprint, $Any, $String, $Number, $Boolean, $One, $Many } = require('../dist');
 
 it('can create null objects', () => {
     const bookBlueprint = blueprint({
@@ -6,8 +6,9 @@ it('can create null objects', () => {
         pages: $Number,
         hardCover: $Boolean,
         meta: $Any,
-        genres: $Many($String),
-        author: { name: $String }
+        author: { name: $String },
+        publisher: $One({ name: $String }),
+        genres: $Many($String)
     });
 
     expect(bookBlueprint.make()).toStrictEqual({
@@ -15,7 +16,8 @@ it('can create null objects', () => {
         pages: 0,
         hardCover: false,
         meta: null,
-        genres: [],
-        author: { name: '' }
+        author: { name: '' },
+        publisher: { name: '' },
+        genres: []
     });
 });

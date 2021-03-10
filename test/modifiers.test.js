@@ -1,10 +1,11 @@
-const { blueprint, $Any, $String, $Number, $Boolean, $Many, IllegalModifierError } = require('../dist');
+const { blueprint, factory, $Any, $String, $Number, $Boolean, $One, $Many, IllegalModifierError } = require('../dist');
 
 it('allows for missing keys or values with maybe', () => {
     const bookBlueprint = blueprint({
         title: $String.maybe,
         pages: $Number.maybe,
         meta: $Any.maybe,
+        author: $One($String).maybe,
         genres: $Many($String).maybe
     });
 
@@ -12,6 +13,7 @@ it('allows for missing keys or values with maybe', () => {
         title: 'The Subtle Art of Not Giving a F*ck',
         pages: null,
         meta: null,
+        author: null,
         genres: null
     });
 });
@@ -21,6 +23,7 @@ it('can leave out empty values with optional', () => {
         title: $String.optional,
         pages: $Number.optional,
         meta: $Any.optional,
+        author: $One($String).optional,
         genres: $Many($String).optional
     });
 
@@ -29,18 +32,22 @@ it('can leave out empty values with optional', () => {
     });
 });
 
-test('maybe takes precedence over optional', () => {
-    const bookBlueprint = blueprint({ price: $Number.optional.maybe });
+test.each([{ price: $Number.optional.maybe }, { price: $Number.maybe.optional }])(
+    'maybe takes precedence over optional',
+    (spec) => {
+        const Book = factory(spec);
 
-    expect(bookBlueprint.make({ title: 'The Name of the Wind' })).toStrictEqual({ price: null });
-    expect(bookBlueprint.make()).toStrictEqual({ price: 0 }); // @TODO currently null objects ignore modifiers
-});
+        expect(Book({ title: 'The Name of the Wind' })).toStrictEqual({ price: null });
+        expect(Book()).toStrictEqual({ price: 0 }); // @TODO currently null objects ignore modifiers
+    }
+);
 
 it('can provide defaults', () => {
     const bookBlueprint = blueprint({
         title: $String.default('A Book'),
         pages: $Number.default(100),
         hardCover: $Boolean.default(true),
+        author: $One($String).default('unknown'),
         genres: $Many($String).default(['novel'])
     });
 
@@ -48,6 +55,7 @@ it('can provide defaults', () => {
         title: 'A Book',
         pages: 100,
         hardCover: true,
+        author: 'unknown',
         genres: ['novel']
     });
 });

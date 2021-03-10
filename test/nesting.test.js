@@ -1,30 +1,26 @@
-const { blueprint, factory, $String, $Number, $Boolean, $Many } = require('../dist');
+const { blueprint, factory, $String, $Number, $One, $Many } = require('../dist');
 
-it('can be nested with objects', () => {
-    const Book = factory({ title: $String, author: { name: $String, age: $Number } });
-
+it.each([
+    { title: $String, author: { name: $String, age: $Number } },
+    { title: $String, author: $One({ name: $String, age: $Number }) }
+])('can be nested with objects', (spec) => {
     expect(
-        Book({
+        factory(spec)({
             title: 'The Name of the Wind',
-            author: {
-                name: 'Patrick Rothfuss',
-                age: 42
-            }
+            author: { name: 'Patrick Rothfuss', age: 42 }
         })
     ).toStrictEqual({
         title: 'The Name of the Wind',
-        author: {
-            name: 'Patrick Rothfuss',
-            age: 42
-        }
+        author: { name: 'Patrick Rothfuss', age: 42 }
     });
 });
 
-it('can be nested with factory', () => {
-    const Book = factory({ title: $String, author: factory({ name: $String }) });
-
+it.each([
+    { title: $String, author: factory({ name: $String }) },
+    { title: $String, author: $One(factory({ name: $String })) }
+])('can be nested with factory', (spec) => {
     expect(
-        Book({
+        factory(spec)({
             title: 'The Name of the Wind',
             author: { name: 'Patrick Rothfuss' }
         })
@@ -34,11 +30,12 @@ it('can be nested with factory', () => {
     });
 });
 
-it('can be nested with blueprint', () => {
-    const Book = factory({ title: $String, author: blueprint({ name: $String }) });
-
+it.each([
+    { title: $String, author: blueprint({ name: $String }) },
+    { title: $String, author: $One(blueprint({ name: $String })) }
+])('can be nested with blueprint', (spec) => {
     expect(
-        Book({
+        factory(spec)({
             title: 'The Name of the Wind',
             author: { name: 'Patrick Rothfuss' }
         })
@@ -48,38 +45,17 @@ it('can be nested with blueprint', () => {
     });
 });
 
-it('can be nested with factory inside many', () => {
-    const Book = factory({ title: $String });
-    const Shelve = factory({ books: $Many(Book) });
+it.each([{ title: $String }, factory({ title: $String }), blueprint({ title: $String })])(
+    'can be nested inside many',
+    (book) => {
+        const Shelve = factory({ books: $Many(book) });
 
-    expect(
-        Shelve({
+        expect(
+            Shelve({
+                books: [{ title: 'The Name of the Wind' }, { title: 'The Subtle Art of Not Giving a F*ck' }]
+            })
+        ).toStrictEqual({
             books: [{ title: 'The Name of the Wind' }, { title: 'The Subtle Art of Not Giving a F*ck' }]
-        })
-    ).toStrictEqual({
-        books: [{ title: 'The Name of the Wind' }, { title: 'The Subtle Art of Not Giving a F*ck' }]
-    });
-});
-
-test('maybe takes precedence over optional', () => {
-    const bookBlueprint = blueprint({ price: $Number.optional.maybe });
-
-    expect(bookBlueprint.make({ title: 'The Name of the Wind' })).toStrictEqual({ price: null });
-    expect(bookBlueprint.make()).toStrictEqual({ price: 0 }); // @TODO currently null objects ignore modifiers
-});
-
-it('can provide defaults', () => {
-    const bookBlueprint = blueprint({
-        title: $String.default('A Book'),
-        pages: $Number.default(100),
-        hardCover: $Boolean.default(true),
-        genres: $Many($String).default(['novel'])
-    });
-
-    expect(bookBlueprint.make({})).toStrictEqual({
-        title: 'A Book',
-        pages: 100,
-        hardCover: true,
-        genres: ['novel']
-    });
-});
+        });
+    }
+);
