@@ -58,7 +58,9 @@ bookBlueprint.make({ title: 'The Name of the Wind' }); // { title: 'The Name of 
 
 > No dependencies, small size.
 
-⚠️ **Disclaimer:** While descriptors like `$String` signal _type system_, blueprint is not a replacement for Typescript.
+---
+
+⚠️ **Disclaimer:** While descriptors like `$String` might seem to be part of a type system, blueprint is not intended to a replacement for Typescript by and means.
 
 ## Example
 
