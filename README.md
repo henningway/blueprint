@@ -1,8 +1,8 @@
 # Blueprint
 
-![npm version](https://badgen.net/npm/v/@henningway/blueprint)
+![ci status](https://github.com/henningway/blueprint/actions/workflows/main.yml/badge.svg)
 ![bundle size](https://badgen.net/bundlephobia/minzip/@henningway/blueprint)
-![ci status](https://flat.badgen.net/github/checks/henningway/blueprint/master/test)
+![npm version](https://badgen.net/npm/v/@henningway/blueprint)
 
 Declarative object conversion for JavaScript.
 
