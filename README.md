@@ -2,6 +2,7 @@
 
 ![npm version](https://badgen.net/npm/v/@henningway/blueprint)
 ![bundle size](https://badgen.net/bundlephobia/minzip/@henningway/blueprint)
+![ci status](https://flat.badgen.net/github/checks/henningway/blueprint/master/test)
 
 Declarative object conversion for JavaScript.
 
