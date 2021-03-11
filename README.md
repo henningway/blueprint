@@ -1,5 +1,8 @@
 # Blueprint
 
+![npm version](https://badgen.net/npm/v/@henningway/blueprint)
+![bundle size](https://badgen.net/bundlephobia/minzip/@henningway/blueprint)
+
 Declarative object conversion for JavaScript.
 
 ## Example
