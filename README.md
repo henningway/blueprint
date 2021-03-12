@@ -12,6 +12,10 @@ Declarative object conversion and creation for JavaScript.
 -   [Usage](#usage)
 -   [Features](#features)
 -   [Example](#example)
+-   [API](#api)
+    -   [Functions](#functions)
+    -   [Descriptors](#descriptors)
+    -   [Modifiers](#modifiers)
 
 ## Install
 
@@ -103,15 +107,17 @@ Resulting object:
 }
 ```
 
-## Functions
+## API
 
-### `blueprint({ ...specification })` | `new Blueprint({ ...specification })`
+### Functions
+
+#### `blueprint({ ...specification })` | `new Blueprint({ ...specification })`
 
 Creates a blueprint object that serves as a model for the conversion and creation of objects of the same structure. `specification` should be an object that has the same keys as the intended target object. Its values should be [descriptors](#descriptors) or nested objects, nested blueprints, or nested factory functions.
 
 Note that when you pass a nested object, blueprint or factory function, then you cannot chain modifiers to them, since they are only available to instances of the Descriptor class. In this case, wrap it with `$One(object|blueprint|factory)` and you are ready to go.
 
-### `blueprint(...).make({ ...raw })`
+#### `blueprint(...).make({ ...raw })`
 
 Factory function that creates a new instance (not in the OO-sense) of the blueprint as a transformation of the given raw object. Note that the ingoing object is not modified.
 
@@ -121,51 +127,51 @@ When `raw` is omitted (or provided as empty object) a [null object](https://en.w
 
 Refer to the [Descriptors](#descriptor) section to learn how each one behaves with regard to conversion and default values.
 
-### `factory({ ...specification })`
+#### `factory({ ...specification })`
 
 This serves as a convenient replacement for `blueprint(...).make`.
 
-## Descriptors
+### Descriptors
 
 Each descriptor characterizes one property of the target object. Descriptors start with a `$` to avoid collision with JavaScript primitive wrapper objects `String`, `Number`, `Boolean`. This section is work in progress.
 
-### `$Any(key, mutator)`
+#### `$Any(key, mutator)`
 
 ⏳
 
-### `$String(key, mutator)`
+#### `$String(key, mutator)`
 
 ⏳
 
-### `$Number(key, mutator)`
+#### `$Number(key, mutator)`
 
 ⏳
 
-### `$Boolean(key, mutator)`
+#### `$Boolean(key, mutator)`
 
 ⏳
 
-### `$One(nested, key, mutator)`
+#### `$One(nested, key, mutator)`
 
 ⏳
 
-### `$Many(nested, key, mutator)`
+#### `$Many(nested, key, mutator)`
 
 ⏳
 
-## Modifiers
+### Modifiers
 
 Modifiers can be chained to descriptors to alter their behaviour.
 
-### `.maybe`
+#### `.maybe`
 
 When missing from the raw object (key not present OR value is `null` OR value is `undefined`), instead of causing a `MissingKeyError`, the property will be `null` in the converted object. This holds true even for `$String`, `$Number` and `$Boolean`.
 
-### `.optional`
+#### `.optional`
 
 Similar to `.maybe`, but the property will be omitted from the converted object.
 
-### `.default(value)`
+#### `.default(value)`
 
 Similar to `.maybe`, but instead of providing `null`, the given value will be used.
 
