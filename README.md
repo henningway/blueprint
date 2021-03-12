@@ -16,6 +16,7 @@ Declarative object conversion and creation for JavaScript.
     -   [Functions](#functions)
     -   [Descriptors](#descriptors)
     -   [Modifiers](#modifiers)
+-   [License](#license)
 
 ## Install
 
