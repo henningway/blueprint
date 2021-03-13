@@ -222,7 +222,3 @@ Similar to `.maybe`, but instead of producing `null`, the given default value wi
 ## License
 
 [MIT](LICENSE) © 2021 Henning Schindler
-
-```
-
-```
