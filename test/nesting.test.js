@@ -17,7 +17,9 @@ it.each([
 
 it.each([
     { title: $String, author: factory({ name: $String }) },
-    { title: $String, author: $One(factory({ name: $String })) }
+    { title: $String, author: (raw) => ({ name: raw.name }) },
+    { title: $String, author: $One(factory({ name: $String })) },
+    { title: $String, author: $One((raw) => ({ name: raw.name })) }
 ])('can be nested with factory', (spec) => {
     expect(
         factory(spec)({

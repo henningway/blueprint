@@ -10,27 +10,52 @@ it('can combine nesting with modifiers', () => {
 });
 
 test('readme example', () => {
-    const book = blueprint({
+    const bookBlueprint = blueprint({
         title: $String,
+        author: {
+            name: $String,
+            homepage: $String
+        },
         pages: $Number('length'),
-        isHardCover: $Boolean('coverType', (value) => value === 'hardcover'),
-        genre: $Many($String, 'categories'),
-        price: $Number.maybe,
-        containsVoldemort: $Boolean.optional
+        genres: $Many($String),
+        inStock: $Boolean.default(false),
+        price: $Number.optional,
+        isHardCover: $Boolean('coverType', (type) => type === 'hardcover')
     });
 
     expect(
-        book.make({
+        bookBlueprint.make({
             title: 'The Name of the Wind',
-            length: '662',
-            coverType: 'hardcover',
-            categories: ['fantasy', 'fiction']
+            author: {
+                name: 'Patrick Rothfuss',
+                homepage: 'patrickrothfuss.com'
+            },
+            length: 662,
+            genres: ['fantasy', 'fiction'],
+            coverType: 'hardcover'
         })
     ).toStrictEqual({
         title: 'The Name of the Wind',
+        author: {
+            name: 'Patrick Rothfuss',
+            homepage: 'patrickrothfuss.com'
+        },
         pages: 662,
-        isHardCover: true,
-        genre: ['fantasy', 'fiction'],
-        price: null
+        genres: ['fantasy', 'fiction'],
+        inStock: false,
+        isHardCover: true
+    });
+
+    expect(bookBlueprint.make()).toStrictEqual({
+        title: '',
+        author: {
+            name: '',
+            homepage: ''
+        },
+        pages: 0,
+        genres: [],
+        inStock: false,
+        price: 0,
+        isHardCover: false
     });
 });
