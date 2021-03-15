@@ -1,4 +1,15 @@
-const { blueprint, factory, $Any, $String, $Number, $Boolean, $One, $Many, MissingKeyError } = require('../dist');
+const {
+    blueprint,
+    factory,
+    $Any,
+    $String,
+    $Number,
+    $Boolean,
+    $Date,
+    $One,
+    $Many,
+    MissingKeyError
+} = require('../dist');
 
 test('empty blueprint provides empty object', () => {
     expect(blueprint().make()).toStrictEqual({});
@@ -65,6 +76,7 @@ test('can provide alternate keys', () => {
         name: $String('title'),
         pageCount: $Number('pages'),
         isHardCover: $Boolean('hardCover'),
+        published: $Date('releaseDate'),
         publishedAt: $One($String, 'publisher'),
         categories: $Many($String, 'genres'),
         metaData: $Any('meta')
@@ -75,6 +87,7 @@ test('can provide alternate keys', () => {
             title: 'The Name of the Wind',
             pages: 662,
             hardCover: true,
+            releaseDate: '2007-03-27',
             publisher: 'DAW Books',
             genres: ['fantasy', 'fiction'],
             meta: {
@@ -85,6 +98,7 @@ test('can provide alternate keys', () => {
         name: 'The Name of the Wind',
         pageCount: 662,
         isHardCover: true,
+        published: new Date('2007-03-27'),
         publishedAt: 'DAW Books',
         categories: ['fantasy', 'fiction'],
         metaData: {

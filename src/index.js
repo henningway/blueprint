@@ -13,6 +13,7 @@ const DescriptorType = new Enum({
     STRING: 'STRING', // CasterType.PRIMITIVE
     NUMBER: 'NUMBER', // CasterType.PRIMITIVE
     BOOLEAN: 'BOOLEAN', // CasterType.PRIMITIVE
+    DATE: 'DATE', // CasterType.PRIMITIVE
     NESTED: 'NESTED', // CasterType.DESCRIPTOR || CasterType.FACTORY
     ARRAY: 'ARRAY' // CasterType.DESCRIPTOR || CasterType.FACTORY
 });
@@ -116,6 +117,8 @@ class Extractor {
                     return [];
                 case DescriptorType.ANY:
                     return null;
+                case DescriptorType.DATE:
+                    return new Date('1970-01-01');
                 default:
                     return '';
             }
@@ -150,6 +153,9 @@ class Descriptor extends Function {
                 break;
             case DescriptorType.BOOLEAN:
                 this.caster = Boolean;
+                break;
+            case DescriptorType.DATE:
+                this.caster = (value) => (value instanceof Date ? value : new Date(value));
                 break;
         }
 
@@ -244,7 +250,7 @@ class Descriptor extends Function {
     }
 
     get casterType() {
-        if ([String, Boolean, Number].includes(this.caster)) return CasterType.PRIMITIVE;
+        if ([String, Number, Boolean, Date].includes(this.caster)) return CasterType.PRIMITIVE;
         if (this.caster instanceof Descriptor) return CasterType.DESCRIPTOR;
         if (this.caster instanceof Function) return CasterType.FACTORY;
         throw new Error('Caster is not set.');
@@ -280,6 +286,7 @@ const $Any = new Descriptor(DescriptorType.ANY);
 const $String = new Descriptor(DescriptorType.STRING);
 const $Number = new Descriptor(DescriptorType.NUMBER);
 const $Boolean = new Descriptor(DescriptorType.BOOLEAN);
+const $Date = new Descriptor(DescriptorType.DATE);
 const $One = new Descriptor(DescriptorType.NESTED);
 const $Many = new Descriptor(DescriptorType.ARRAY);
 
@@ -294,6 +301,7 @@ export {
     $String,
     $Number,
     $Boolean,
+    $Date,
     $One,
     $Many,
     MissingKeyError,

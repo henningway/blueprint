@@ -166,7 +166,7 @@ Descriptors characterize properties of the target object. They start with a `$` 
 
 There are two types:
 
--   basic: `$Any`, `$String`, `$Number`, `$Boolean`
+-   basic: `$Any`, `$String`, `$Number`, `$Boolean`, `$Date`
 -   higher-order: `$One`, `$Many`
 
 Both share common parameters, but higher-order ones have one extra:
@@ -194,6 +194,10 @@ Casts the input value (after applying `mutator`) to type `number`. Results in `0
 #### `$Boolean(key, mutator)`
 
 Casts the input value (after applying `mutator`) to type `boolean`. Results in `false` during null object creation.
+
+#### `$Date(key, mutator)`
+
+Checks whether the input value is a Date - if not it creates a new one with `new Date(input)`. Results in the date created by `new Date('1970-01-01)` (the [Unix epoch](https://en.wikipedia.org/wiki/Unix_time)) during null object creation.
 
 #### `$One(nested, key, mutator)`
 

@@ -1,4 +1,15 @@
-const { blueprint, factory, $Any, $String, $Number, $Boolean, $One, $Many, IllegalModifierError } = require('../dist');
+const {
+    blueprint,
+    factory,
+    $Any,
+    $String,
+    $Number,
+    $Boolean,
+    $Date,
+    $One,
+    $Many,
+    IllegalModifierError
+} = require('../dist');
 
 it('allows for missing keys or values with maybe', () => {
     const bookBlueprint = blueprint({
@@ -47,6 +58,7 @@ it('can provide defaults', () => {
         title: $String.default('A Book'),
         pages: $Number.default(100),
         hardCover: $Boolean.default(true),
+        published: $Date.default(new Date('2007-03-27')),
         author: $One($String).default('unknown'),
         genres: $Many($String).default(['novel'])
     });
@@ -55,6 +67,7 @@ it('can provide defaults', () => {
         title: 'A Book',
         pages: 100,
         hardCover: true,
+        published: new Date('2007-03-27'),
         author: 'unknown',
         genres: ['novel']
     });
