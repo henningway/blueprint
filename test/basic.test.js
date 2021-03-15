@@ -1,4 +1,4 @@
-const { blueprint, $Any, $String, $Number, $Boolean, $One, $Many, MissingKeyError } = require('../dist');
+const { blueprint, factory, $Any, $String, $Number, $Boolean, $One, $Many, MissingKeyError } = require('../dist');
 
 test('empty blueprint provides empty object', () => {
     expect(blueprint().make()).toStrictEqual({});
@@ -28,10 +28,28 @@ it('can extract booleans', () => {
     expect(bookBlueprint.make({ hardCover: 'false' })).toStrictEqual({ hardCover: true }); // @TODO decide whether library should deviate from javascript default behaviour
 });
 
-it('can pass through anything', () => {
-    const obscureBlueprint = blueprint({ x: $Any });
+it.each([
+    null,
+    undefined,
+    NaN,
+    Infinity,
+    Symbol('yo'),
+    function foo() {},
+    1,
+    true,
+    false,
+    '',
+    'a',
+    {},
+    { a: 'b' },
+    [],
+    ['a', 'b']
+])('can pass through anything', (raw) => {
+    const one = factory({ x: $Any });
+    const many = factory({ x: $Many($Any) });
 
-    expect(obscureBlueprint.make({ x: {} })).toStrictEqual({ x: {} });
+    expect(one({ x: raw })).toStrictEqual({ x: raw });
+    expect(many({ x: [raw] })).toStrictEqual({ x: [raw] });
 });
 
 it('can extract arrays', () => {

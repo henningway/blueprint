@@ -71,7 +71,7 @@ class Extractor {
     extract(raw) {
         this.descriptor.checkIsReady();
 
-        if (typeof raw === 'object' && !raw.hasOwnProperty(this.descriptor.key)) {
+        if (this.descriptor.hasKey && typeof raw === 'object' && !raw.hasOwnProperty(this.descriptor.key)) {
             if (this.descriptor.hasDefault) return this.descriptor.defaultValue;
             if (this.descriptor.hasModifier(Modifier.MAYBE)) return null;
             if (this.descriptor.hasModifier(Modifier.OPTIONAL)) return MissingKeyOrValue;
