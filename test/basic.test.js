@@ -28,7 +28,7 @@ it('can extract booleans', () => {
     expect(bookBlueprint.make({ hardCover: 'false' })).toStrictEqual({ hardCover: true }); // @TODO decide whether library should deviate from javascript default behaviour
 });
 
-it.each([
+test.each([
     null,
     undefined,
     NaN,
@@ -44,7 +44,7 @@ it.each([
     { a: 'b' },
     [],
     ['a', 'b']
-])('can pass through anything', (raw) => {
+])('$Any can pass through anything', (raw) => {
     const one = factory({ x: $Any });
     const many = factory({ x: $Many($Any) });
 
@@ -52,7 +52,7 @@ it.each([
     expect(many({ x: [raw] })).toStrictEqual({ x: [raw] });
 });
 
-it('can extract arrays', () => {
+test('$Many can extract arrays', () => {
     const bookBlueprint = blueprint({ genres: $Many($String) });
 
     expect(bookBlueprint.make({ genres: ['fantasy', 'fiction'] })).toStrictEqual({
