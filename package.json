@@ -4,9 +4,9 @@
     "description": "Declarative object conversion for JavaScript.",
     "main": "dist/index.js",
     "scripts": {
-        "dev": "NODE_ENV=development rollup -c",
-        "watch": "NODE_ENV=development rollup -c -w",
-        "build": "NODE_ENV=production rollup -c",
+        "dev": "cross-env NODE_ENV=development rollup -c",
+        "watch": "cross-env NODE_ENV=development rollup -c -w",
+        "build": "cross-env NODE_ENV=production rollup -c",
         "test": "jest",
         "test:build": "npm run build && npm run test",
         "prettier": "prettier --write .",
@@ -23,6 +23,7 @@
     },
     "homepage": "https://github.com/henningway/blueprint#readme",
     "devDependencies": {
+        "cross-env": "^7.0.3",
         "husky": "^5.1.2",
         "jest": "^26.6.3",
         "prettier": "^2.2.1",
