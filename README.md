@@ -197,7 +197,7 @@ Casts the input value (after applying `mutator`) to type `boolean`. Results in `
 
 #### `$Date(key, mutator)`
 
-In case of the input value being a date the value is passed through. Otherwise creates a new one with `new Date(input)`. Results in the date created by `new Date('1970-01-01)` (the [Unix epoch](https://en.wikipedia.org/wiki/Unix_time)) during null object creation.
+In case of the input value being a date the value is passed through. Otherwise creates a new one with `new Date(input)`. Results in the date created by `new Date('1970-01-01')` (the [Unix epoch](https://en.wikipedia.org/wiki/Unix_time)) during null object creation.
 
 #### `$One(nested, key, mutator)`
 
