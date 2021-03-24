@@ -21,7 +21,7 @@ export class Descriptor {
     key;
     nested;
     defaultValue;
-    mutator;
+    mutator = (x) => x;
     _modifiers = [];
 
     constructor(type) {
@@ -105,10 +105,6 @@ export class Descriptor {
 
     get hasDefault() {
         return this.defaultValue !== undefined;
-    }
-
-    get hasMutator() {
-        return typeof this.mutator === 'function';
     }
 
     hasModifier(modifier) {

@@ -42,17 +42,14 @@ export class Extractor {
         }
 
         const type = this.descriptor.type;
-        // const caster = this.applyMutator(type.convertValue.bind(type));
+
+        let convert = type.convert.bind(type);
 
         if (this.descriptor.type instanceof HigherOrderDescriptorType)
-            return type.convertValue(value, this.descriptor.nested);
+            return convert(this.descriptor.nested, value, this.descriptor.mutator);
 
-        return type.convertValue(value);
+        return convert(value, this.descriptor.mutator);
     }
-
-    // applyMutator(caster) {
-    //     return this.descriptor.hasMutator ? (raw, nested) => caster(this.descriptor.mutator(raw), nested) : caster;
-    // }
 
     makeNullValue() {
         this.descriptor.checkIsReady();

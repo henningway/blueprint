@@ -1,47 +1,48 @@
 import { assert } from './internal';
 
 export class DescriptorType {
-    _convertValue;
+    _convert;
     _makeNullValue;
 
-    constructor(convertValue, makeNullValue) {
-        assert(typeof convertValue === 'function', "Parameter 'convertValue' should be a function.");
+    constructor(convert, makeNullValue) {
+        assert(typeof convert === 'function', "Parameter 'convert' should be a function.");
         assert(typeof makeNullValue === 'function', "Parameter 'makeNullValue' should be a function.");
 
-        this._convertValue = convertValue;
+        this._convert = convert;
         this._makeNullValue = makeNullValue;
 
         this._checkArities();
     }
 
     _checkArities() {
-        assert(this._convertValue.length === 1);
+        assert(this._convert.length === 2);
         assert(this._makeNullValue.length === 0);
     }
 
-    convertValue(raw) {
-        return this._convertValue(raw);
+    convert(raw, mutator = (x) => x) {
+        return this._convert(raw, mutator);
     }
 
     makeNullValue() {
-        return this._makeNullValue(this._convertValue);
+        return this._makeNullValue(this._convert);
     }
 }
 
 export class HigherOrderDescriptorType extends DescriptorType {
-    constructor(convertValue, makeNullValue) {
-        super(convertValue, makeNullValue);
+    constructor(convert, makeNullValue) {
+        super(convert, makeNullValue);
     }
 
     _checkArities() {
-        assert(this._convertValue.length === 2);
+        assert(this._convert.length === 3);
         assert(this._makeNullValue.length === 1);
     }
 
-    convertValue(raw, nested) {
+    convert(nested, raw, mutator = (x) => x) {
         assert(typeof nested === 'function');
+        assert(typeof mutator === 'function');
 
-        return this._convertValue(raw, nested);
+        return this._convert(nested, raw, mutator);
     }
 
     makeNullValue(nested) {
@@ -52,31 +53,31 @@ export class HigherOrderDescriptorType extends DescriptorType {
 }
 
 export const AnyDescriptorType = new DescriptorType(
-    (raw) => raw,
+    (raw, mutator) => mutator(raw),
     () => null
 );
 export const StringDescriptorType = new DescriptorType(
-    (raw) => String(raw),
+    (raw, mutator) => String(mutator(raw)),
     () => ''
 );
 export const NumberDescriptorType = new DescriptorType(
-    (raw) => Number(raw),
+    (raw, mutator) => Number(mutator(raw)),
     () => 0
 );
 export const BooleanDescriptorType = new DescriptorType(
-    (raw) => Boolean(raw),
+    (raw, mutator) => Boolean(mutator(raw)),
     () => false
 );
 export const DateDescriptorType = new DescriptorType(
-    (raw) => (raw instanceof Date ? raw : new Date(raw)),
+    (raw, mutator) => (raw instanceof Date ? mutator(raw) : new Date(mutator(raw))),
     () => new Date('1970-01-01')
 );
 
 export const NestedDescriptorType = new HigherOrderDescriptorType(
-    (raw, convertValue) => convertValue(raw),
+    (convert, raw, mutator) => convert(mutator(raw)),
     (nested) => nested.makeNullValue()
 );
 export const ArrayDescriptorType = new HigherOrderDescriptorType(
-    (raw, convertValue) => raw.map(convertValue),
+    (convert, raw, mutator) => raw.map((x) => convert(mutator(x))),
     (nested) => []
 );
