@@ -1,99 +1,33 @@
 import {
     assert,
-    Blueprint,
-    factory,
-    CasterType,
-    DescriptorType,
     empty,
+    factory,
+    Blueprint,
+    Extractor,
+    DescriptorType,
+    NestedDescriptorType,
+    Modifier,
     IllegalModifierError,
-    Modifier
+    BlueprintSpecificationError,
+    HigherOrderDescriptorType
 } from './internal';
 
-export class Descriptor extends Function {
-    constructor(type, defaultValue = undefined, ejected = false) {
-        super();
+/**
+ * Each instance is a characterization of one property of the target object. Does not contain any logic about the actual
+ * extraction and conversion of
+ */
+export class Descriptor {
+    type;
+    key;
+    nested;
+    defaultValue;
+    _modifiers = [];
 
+    constructor(type) {
         this.type = type;
-        this.defaultValue = defaultValue;
-        this.ejected = ejected;
-
-        this.key = null;
-        this.caster = null;
-        this.mutator = null;
-        this.modifiers = [];
-
-        switch (type) {
-            case DescriptorType.ANY:
-                this.caster = (x) => x;
-                break;
-            case DescriptorType.STRING:
-                this.caster = String;
-                break;
-            case DescriptorType.NUMBER:
-                this.caster = Number;
-                break;
-            case DescriptorType.BOOLEAN:
-                this.caster = Boolean;
-                break;
-            case DescriptorType.DATE:
-                this.caster = (value) => (value instanceof Date ? value : new Date(value));
-                break;
-        }
-
-        return new Proxy(this, {
-            get: (target, prop, receiver) => {
-                if (Reflect.has(target, prop)) return Reflect.get(target, prop, receiver);
-
-                if (Modifier.has(prop)) {
-                    target = target.eject();
-                    target.addModifier(prop);
-                    return target;
-                }
-
-                if (prop === 'default') {
-                    target = target.eject();
-                    return (value) => {
-                        target.defaultValue = value;
-                        return target;
-                    };
-                }
-
-                if (typeof prop === 'string') throw new IllegalModifierError(prop);
-            },
-            apply: (target, thisArg, args) => {
-                if (target.ejected) return Reflect.apply(target, thisArg, args);
-
-                target = target.eject();
-                return target.call(...args);
-            }
-        });
     }
 
-    // when Descriptor is called as a function, examples: $String(...), $Many(...), etc.
-    call(...args) {
-        // nesting of descriptors, example: $Many($String, ...)
-        if (args.length > 0) {
-            if (args[0] instanceof Descriptor) this.setCaster(args.shift());
-            else if (args[0] instanceof Function) this.setCaster(args.shift());
-            else if (args[0] instanceof Blueprint) {
-                const blueprint = args.shift();
-
-                this.setCaster((raw) => blueprint.make(raw));
-            } else if (typeof args[0] === 'object') this.setCaster(factory(args.shift()));
-        }
-
-        if (args.length > 0) this.setKey(args.shift());
-        if (args.length > 0) this.setMutator(args.shift());
-
-        return this;
-    }
-
-    setCaster(caster) {
-        this.caster = caster;
-        this.checkCaster();
-        return this;
-    }
-
+    // SET
     setKey(key) {
         assert(typeof key === 'string', 'Key should be a string, but it is not.');
 
@@ -101,64 +35,154 @@ export class Descriptor extends Function {
         return this;
     }
 
+    trySetNested(value) {
+        //(raw) => new Extractor(this.descriptor.caster).extract(raw)
+        const attempts = [
+            {
+                condition: (x) => x instanceof DescriptorProxy,
+                set: (proxy) => (this.nested = (raw) => new Extractor(proxy.eject()).extract(raw))
+            },
+            {
+                condition: (x) => x instanceof Descriptor,
+                set: (descriptor) => (this.nested = (raw) => new Extractor(descriptor).extract(raw))
+            },
+            {
+                condition: (x) => x instanceof Function,
+                set: (fn) => (this.nested = fn)
+            },
+            {
+                condition: (x) => x instanceof Blueprint,
+                set: (blueprint) => (this.nested = (raw) => blueprint.make(raw))
+            },
+            {
+                condition: (x) => typeof x === 'object',
+                set: (specification) => (this.nested = factory(specification))
+            }
+        ];
+
+        return attempts.some((attempt, index) => {
+            if (attempt.condition(value)) {
+                attempt.set(value);
+                return true;
+            }
+
+            return false;
+        });
+    }
+
+    setDefault(value) {
+        this.defaultValue = value;
+        return this;
+    }
+
     setMutator(mutator) {
         assert(typeof mutator === 'function', 'Mutator should be a function, but it is not.');
 
         this.mutator = mutator;
-        return this;
     }
 
-    addModifier(modifiers) {
-        this.modifiers.push(modifiers);
+    _addModifier(modifiers) {
+        this._modifiers.push(modifiers);
     }
 
-    checkType() {
-        assert(!empty(this.type), 'Descriptor type is not set.');
-        assert(DescriptorType.has(this.type), 'The descriptor type is not valid.');
-    }
-
-    checkCaster() {
-        assert(!empty(this.caster), 'Caster is not set.');
-        assert(CasterType.has(this.casterType), 'The caster is not valid.');
-    }
-
+    // INTERROGATE
     get hasKey() {
         return this.key !== null;
-    }
-
-    hasModifier(modifier) {
-        return this.modifiers.includes(modifier);
-    }
-
-    get casterType() {
-        if ([String, Number, Boolean, Date].includes(this.caster)) return CasterType.PRIMITIVE;
-        if (this.caster instanceof Descriptor) return CasterType.DESCRIPTOR;
-        if (this.caster instanceof Function) return CasterType.FACTORY;
-        throw new Error('Caster is not set.');
-    }
-
-    get hasMutator() {
-        return typeof this.mutator === 'function';
-    }
-
-    checkIsReady() {
-        assert(this.ejected, 'Descriptor has not been ejected.');
-        this.checkType();
-        this.checkCaster();
     }
 
     get hasDefault() {
         return this.defaultValue !== undefined;
     }
 
-    /**
-     * Vanilla descriptors like $String or $Number might be incomplete and require attributes to be set from inside the
-     * library (example: key). If we set these attributes just like this, we pollute the public object, which is why we
-     * have to create a new instance.
-     */
-    eject() {
-        if (!this.ejected) return new Descriptor(this.type, this.defaultValue, true);
+    get hasMutator() {
+        return typeof this.mutator === 'function';
+    }
+
+    hasModifier(modifier) {
+        return this._modifiers.includes(modifier);
+    }
+
+    // CHECK
+    checkIsReady() {
+        this._checkType();
+
+        if (this.type instanceof HigherOrderDescriptorType) {
+            assert(!empty(this.nested), 'Descriptor has higher order type but is not nested.');
+            assert(typeof this.nested === 'function', 'Nested should be wrapped as a function.');
+        }
+    }
+
+    _checkType() {
+        assert(!empty(this.type), 'Descriptor type is not set.');
+        assert(this.type instanceof DescriptorType, 'The descriptor type is not valid.');
+    }
+
+    // FACTORY
+    static fromSpecificationValue(specificationValue) {
+        if (specificationValue instanceof Descriptor) return specificationValue;
+
+        if (specificationValue instanceof DescriptorProxy) return specificationValue.eject();
+
+        const descriptor = new Descriptor(NestedDescriptorType);
+
+        if (!descriptor.trySetNested(specificationValue))
+            throw new BlueprintSpecificationError(typeof specificationValue);
+
+        return descriptor;
+    }
+}
+
+export class DescriptorProxy extends Function {
+    _descriptor;
+
+    constructor(type) {
+        super();
+
+        this._descriptor = new Descriptor(type);
+
+        return new Proxy(this, {
+            get: (target, prop, receiver) => {
+                return target._get(target, prop, receiver);
+            },
+            apply: (target, thisArg, args) => {
+                return target._call(...args);
+            }
+        });
+    }
+
+    _get(target, prop, receiver) {
+        if (Reflect.has(target, prop)) return Reflect.get(target, prop, receiver);
+
+        if (Modifier.has(prop)) {
+            this._descriptor = target.eject();
+            this._descriptor._addModifier(prop);
+
+            return this;
+        }
+
+        if (prop === 'default') {
+            this._descriptor = target.eject();
+            return (value) => {
+                this._descriptor.setDefault(value);
+                return this;
+            };
+        }
+
+        if (typeof prop === 'string') throw new IllegalModifierError(prop);
+    }
+
+    _call(...args) {
+        if (args.length > 0) {
+            if (this._descriptor.trySetNested(args[0])) args.shift();
+        }
+
+        if (args.length > 0) this._descriptor.setKey(args.shift());
+        if (args.length > 0) this._descriptor.setMutator(args.shift());
 
         return this;
+    }
+
+    eject() {
+        return this._descriptor;
     }
 }

@@ -1,1 +1,429 @@
-!function(e,t){"object"==typeof exports&&"undefined"!=typeof module?t(exports):"function"==typeof define&&define.amd?define(["exports"],t):t((e="undefined"!=typeof globalThis?globalThis:e||self).Blueprint={})}(this,(function(e){"use strict";const t=function(e){return!["number","boolean"].includes(typeof e)&&([Object,Array].includes((e||{}).constructor)&&!Object.entries(e||{}).length)},s=function(e,t=""){if(!e){if(t=["Assertion failed",t].join(": "),"undefined"!=typeof Error)throw new Error(t);throw t}},r=class{constructor(e={}){return this.elements=e,new Proxy(this,{get:(e,t,s)=>Reflect.has(e,t)?Reflect.get(e,t,s):e.elements[t]})}has(e){return this.values.includes(e)}get values(){return Object.values(this.elements)}},i=new r({MAYBE:"maybe",OPTIONAL:"optional"}),n=new r({ANY:"ANY",STRING:"STRING",NUMBER:"NUMBER",BOOLEAN:"BOOLEAN",DATE:"DATE",NESTED:"NESTED",ARRAY:"ARRAY"}),o=new r({PASS_THROUGH:"PASS_THROUGH",PRIMITIVE:"PRIMITIVE",DESCRIPTOR:"DESCRIPTOR",FACTORY:"FACTORY"}),c=Symbol("missing key or value"),a=class extends Error{constructor(e){super(`The key '${e}' is missing from the object to be converted.`),this.name="MissingKeyError"}},h=class extends Error{constructor(e=null){super(`'${e}' is not a valid modifier.`),this.name="IllegalModifierError"}},u=class extends Error{constructor(e){super(`Blueprint specification contains illegal element of type ${e}.`),this.name="BlueprintSpecificationError"}};class l extends Function{constructor(e,t,s=!1){switch(super(),this.type=e,this.defaultValue=t,this.ejected=s,this.key=null,this.caster=null,this.mutator=null,this.modifiers=[],e){case n.ANY:this.caster=e=>e;break;case n.STRING:this.caster=String;break;case n.NUMBER:this.caster=Number;break;case n.BOOLEAN:this.caster=Boolean;break;case n.DATE:this.caster=e=>e instanceof Date?e:new Date(e)}return new Proxy(this,{get:(e,t,s)=>{if(Reflect.has(e,t))return Reflect.get(e,t,s);if(i.has(t))return(e=e.eject()).addModifier(t),e;if("default"===t)return e=e.eject(),t=>(e.defaultValue=t,e);if("string"==typeof t)throw new h(t)},apply:(e,t,s)=>e.ejected?Reflect.apply(e,t,s):(e=e.eject()).call(...s)})}call(...e){if(e.length>0)if(e[0]instanceof l)this.setCaster(e.shift());else if(e[0]instanceof Function)this.setCaster(e.shift());else if(e[0]instanceof f){const t=e.shift();this.setCaster((e=>t.make(e)))}else"object"==typeof e[0]&&this.setCaster(p(e.shift()));return e.length>0&&this.setKey(e.shift()),e.length>0&&this.setMutator(e.shift()),this}setCaster(e){return this.caster=e,this.checkCaster(),this}setKey(e){return s("string"==typeof e,"Key should be a string, but it is not."),t(this.key)&&(this.key=e),this}setMutator(e){return s("function"==typeof e,"Mutator should be a function, but it is not."),this.mutator=e,this}addModifier(e){this.modifiers.push(e)}checkType(){s(!t(this.type),"Descriptor type is not set."),s(n.has(this.type),"The descriptor type is not valid.")}checkCaster(){s(!t(this.caster),"Caster is not set."),s(o.has(this.casterType),"The caster is not valid.")}get hasKey(){return null!==this.key}hasModifier(e){return this.modifiers.includes(e)}get casterType(){if([String,Number,Boolean,Date].includes(this.caster))return o.PRIMITIVE;if(this.caster instanceof l)return o.DESCRIPTOR;if(this.caster instanceof Function)return o.FACTORY;throw new Error("Caster is not set.")}get hasMutator(){return"function"==typeof this.mutator}checkIsReady(){s(this.ejected,"Descriptor has not been ejected."),this.checkType(),this.checkCaster()}get hasDefault(){return void 0!==this.defaultValue}eject(){return this.ejected?this:new l(this.type,this.defaultValue,!0)}}class f{constructor(e={}){this.specification=e}make(e={}){const s={},r=t(e);return Object.entries(this.specification).forEach((([t,i])=>{if(!(i instanceof l)){const e=typeof i;if(!(i instanceof f||"function"===e||"object"===e))throw new u(e);i=new l(n.NESTED)(i)}const o=new y(i.eject().setKey(t));if(r)return void(s[t]=o.makeNullValue());const a=o.extract(e);a!==c&&(s[t]=a)})),s}}const d=e=>new f(e),p=e=>t=>d(e).make(t);class y{constructor(e){return this.descriptor=e.eject(),this}extract(e){if(this.descriptor.checkIsReady(),this.descriptor.hasKey&&"object"==typeof e&&!e.hasOwnProperty(this.descriptor.key)){if(this.descriptor.hasDefault)return this.descriptor.defaultValue;if(this.descriptor.hasModifier(i.MAYBE))return null;if(this.descriptor.hasModifier(i.OPTIONAL))return c;throw new a(this.descriptor.key)}return this.convert(this.descriptor.hasKey?e[this.descriptor.key]:e)}convert(e){if([null,void 0].includes(e)){if(this.descriptor.hasModifier(i.MAYBE))return null;if(this.descriptor.hasModifier(i.OPTIONAL))return c}const t=this.applyMutator(this.caster);return this.descriptor.type===n.ARRAY?e.map((e=>t(e))):t(e)}get caster(){return this.descriptor.casterType===o.DESCRIPTOR?e=>new y(this.descriptor.caster).extract(e):this.descriptor.caster}applyMutator(e){return this.descriptor.hasMutator?t=>e(this.descriptor.mutator(t)):e}makeNullValue(){const e=(()=>{if(this.descriptor.hasDefault)return this.descriptor.defaultValue;switch(this.descriptor.type){case n.ARRAY:return[];case n.ANY:return null;case n.DATE:return new Date("1970-01-01");default:return""}})();return this.convert(e)}}const E=new l(n.ANY),R=new l(n.STRING),A=new l(n.NUMBER),T=new l(n.BOOLEAN),w=new l(n.DATE),m=new l(n.NESTED),b=new l(n.ARRAY);e.$Any=E,e.$Boolean=T,e.$Date=w,e.$Many=b,e.$Number=A,e.$One=m,e.$String=R,e.Blueprint=f,e.IllegalModifierError=h,e.MissingKeyError=a,e.blueprint=d,e.factory=p,Object.defineProperty(e,"__esModule",{value:!0})}));
+(function (global, factory) {
+    typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
+    typeof define === 'function' && define.amd ? define(['exports'], factory) :
+    (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.Blueprint = {}));
+}(this, (function (exports) { 'use strict';
+
+    /**
+     * Checks whether a value is empty (null, undefined, '', [], {}).
+     *
+     * Adapted from https://github.com/you-dont-need/You-Dont-Need-Lodash-Underscore#_isempty
+     */
+    const empty = function (value) {
+        if (['number', 'boolean'].includes(typeof value)) return false;
+
+        return [Object, Array].includes((value || {}).constructor) && !Object.entries(value || {}).length;
+    };
+
+    /**
+     * Javascript lacks assertions. But it's simple to roll our own.
+     *
+     * Shamelessly adapted from https://stackoverflow.com/a/15313435
+     *
+     * @param condition
+     * @param message
+     */
+    const assert = function (condition, message = '') {
+        if (!condition) {
+            message = ['Assertion failed', message].join(': ');
+            if (typeof Error !== 'undefined') {
+                throw new Error(message);
+            }
+            throw message; // Fallback
+        }
+    };
+
+    const Enum = class {
+        constructor(elements = {}) {
+            this.elements = elements;
+
+            // proxy enables accessing enum values on the parent object via the elements-array
+            // e.g. SomeEnum.someValue will resolve to SomeEnum.elements.someValue
+            return new Proxy(this, {
+                get(target, prop, receiver) {
+                    if (!Reflect.has(target, prop)) {
+                        return target.elements[prop];
+                    }
+                    return Reflect.get(target, prop, receiver);
+                }
+            });
+        }
+
+        has(element) {
+            return this.values.includes(element);
+        }
+
+        get values() {
+            return Object.values(this.elements);
+        }
+    };
+
+    const Modifier = new Enum({
+        MAYBE: 'maybe',
+        OPTIONAL: 'optional'
+    });
+
+    const MissingKeyOrValue = Symbol('missing key or value');
+
+    const MissingKeyError = class extends Error {
+        constructor(key, raw) {
+            super(`The key '${key}' is missing from the object to be converted: ${JSON.stringify(raw,null,2)}.`);
+            this.name = 'MissingKeyError';
+        }
+    };
+
+    const IllegalModifierError = class extends Error {
+        constructor(modifier = null) {
+            super(`'${modifier}' is not a valid modifier.`);
+            this.name = 'IllegalModifierError';
+        }
+    };
+
+    const BlueprintSpecificationError = class extends Error {
+        constructor(type) {
+            super(`Blueprint specification contains illegal element of type ${type}.`);
+            this.name = 'BlueprintSpecificationError';
+        }
+    };
+
+    class DescriptorType {
+        constructor(caster, makeNullValue) {
+            this._caster = caster;
+            this._makeNullValue = makeNullValue;
+        }
+
+        get caster() {
+            return this._caster;
+        }
+
+        get makeNullValue() {
+            return this._makeNullValue;
+        }
+    }
+
+    class HigherOrderDescriptorType extends DescriptorType {
+        constructor(caster, makeNullValue) {
+            super(caster, makeNullValue);
+        }
+    }
+
+    const AnyDescriptorType = new DescriptorType(
+        (raw) => raw,
+        (caster) => null
+    );
+    const StringDescriptorType = new DescriptorType(
+        (raw) => String(raw),
+        (caster) => ''
+    );
+    const NumberDescriptorType = new DescriptorType(
+        (raw) => Number(raw),
+        (caster) => 0
+    );
+    const BooleanDescriptorType = new DescriptorType(
+        (raw) => Boolean(raw),
+        (caster) => false
+    );
+    const DateDescriptorType = new DescriptorType(
+        (raw) => (raw instanceof Date ? raw : new Date(raw)),
+        (caster) => caster('1970-01-01')
+    );
+    const NestedDescriptorType = new HigherOrderDescriptorType(
+        (raw, nested) => nested(raw),
+        (caster, nested) => caster({}, nested)
+    );
+    const ArrayDescriptorType = new HigherOrderDescriptorType(
+        (raw, nested) => raw.map(nested),
+        (caster, nested) => []
+    );
+
+    /**
+     * Each instance is a characterization of one property of the target object. Does not contain any logic about the actual
+     * extraction and conversion of
+     */
+    class Descriptor {
+        type;
+        key;
+        nested;
+        defaultValue;
+        _modifiers = [];
+
+        constructor(type) {
+            this.type = type;
+        }
+
+        // SET
+        setKey(key) {
+            assert(typeof key === 'string', 'Key should be a string, but it is not.');
+
+            if (empty(this.key)) this.key = key;
+            return this;
+        }
+
+        trySetNested(value) {
+            //(raw) => new Extractor(this.descriptor.caster).extract(raw)
+            const attempts = [
+                {
+                    condition: (x) => x instanceof DescriptorProxy,
+                    set: (proxy) => (this.nested = (raw) => new Extractor(proxy.eject()).extract(raw))
+                },
+                {
+                    condition: (x) => x instanceof Descriptor,
+                    set: (descriptor) => (this.nested = (raw) => new Extractor(descriptor).extract(raw))
+                },
+                {
+                    condition: (x) => x instanceof Function,
+                    set: (fn) => (this.nested = fn)
+                },
+                {
+                    condition: (x) => x instanceof Blueprint,
+                    set: (blueprint) => (this.nested = (raw) => blueprint.make(raw))
+                },
+                {
+                    condition: (x) => typeof x === 'object',
+                    set: (specification) => (this.nested = factory(specification))
+                }
+            ];
+
+            return attempts.some((attempt, index) => {
+                if (attempt.condition(value)) {
+                    attempt.set(value);
+                    return true;
+                }
+
+                return false;
+            });
+        }
+
+        setDefault(value) {
+            this.defaultValue = value;
+            return this;
+        }
+
+        setMutator(mutator) {
+            assert(typeof mutator === 'function', 'Mutator should be a function, but it is not.');
+
+            this.mutator = mutator;
+        }
+
+        _addModifier(modifiers) {
+            this._modifiers.push(modifiers);
+        }
+
+        // INTERROGATE
+        get hasKey() {
+            return this.key !== null;
+        }
+
+        get hasDefault() {
+            return this.defaultValue !== undefined;
+        }
+
+        get hasMutator() {
+            return typeof this.mutator === 'function';
+        }
+
+        hasModifier(modifier) {
+            return this._modifiers.includes(modifier);
+        }
+
+        // CHECK
+        checkIsReady() {
+            this._checkType();
+
+            if (this.type instanceof HigherOrderDescriptorType) {
+                assert(!empty(this.nested), 'Descriptor has higher order type but is not nested.');
+                assert(typeof this.nested === 'function', 'Nested should be wrapped as a function.');
+            }
+        }
+
+        _checkType() {
+            assert(!empty(this.type), 'Descriptor type is not set.');
+            assert(this.type instanceof DescriptorType, 'The descriptor type is not valid.');
+        }
+
+        // FACTORY
+        static fromSpecificationValue(specificationValue) {
+            if (specificationValue instanceof Descriptor) return specificationValue;
+
+            if (specificationValue instanceof DescriptorProxy) return specificationValue.eject();
+
+            const descriptor = new Descriptor(NestedDescriptorType);
+
+            if (!descriptor.trySetNested(specificationValue))
+                throw new BlueprintSpecificationError(typeof specificationValue);
+
+            return descriptor;
+        }
+    }
+
+    class DescriptorProxy extends Function {
+        _descriptor;
+
+        constructor(type) {
+            super();
+
+            this._descriptor = new Descriptor(type);
+
+            return new Proxy(this, {
+                get: (target, prop, receiver) => {
+                    return target._get(target, prop, receiver);
+                },
+                apply: (target, thisArg, args) => {
+                    return target._call(...args);
+                }
+            });
+        }
+
+        _get(target, prop, receiver) {
+            if (Reflect.has(target, prop)) return Reflect.get(target, prop, receiver);
+
+            if (Modifier.has(prop)) {
+                this._descriptor = target.eject();
+                this._descriptor._addModifier(prop);
+
+                return this;
+            }
+
+            if (prop === 'default') {
+                this._descriptor = target.eject();
+                return (value) => {
+                    this._descriptor.setDefault(value);
+                    return this;
+                };
+            }
+
+            if (typeof prop === 'string') throw new IllegalModifierError(prop);
+        }
+
+        _call(...args) {
+            if (args.length > 0) {
+                if (this._descriptor.trySetNested(args[0])) args.shift();
+            }
+
+            if (args.length > 0) this._descriptor.setKey(args.shift());
+            if (args.length > 0) this._descriptor.setMutator(args.shift());
+
+            return this;
+        }
+
+        eject() {
+            return this._descriptor;
+        }
+    }
+
+    class Blueprint {
+        constructor(specification = {}) {
+            this.specification = specification;
+        }
+
+        make(raw = {}) {
+            const result = {};
+            const makeNullObject = empty(raw);
+
+            Object.entries(this.specification).forEach(([key, specificationValue]) => {
+                const extractor = Extractor.fromSpecificationEntry(key, specificationValue);
+
+                if (makeNullObject) {
+                    result[key] = extractor.makeNullValue();
+                    return;
+                }
+
+                const value = extractor.extract(raw);
+                if (value !== MissingKeyOrValue) result[key] = value;
+            });
+
+            return result;
+        }
+    }
+
+    const blueprint = (specification) => new Blueprint(specification);
+    const factory = (specification) => (raw) => blueprint(specification).make(raw);
+
+    /**
+     * Knows how to use a descriptor to extract a value from a raw object.
+     */
+    class Extractor {
+        constructor(descriptor) {
+            this.descriptor = descriptor instanceof DescriptorProxy ? descriptor.eject() : descriptor;
+            return this;
+        }
+
+        /**
+         * Takes a raw value or object. Unpacks the value to be converted when a key is present. Runs the conversion.
+         */
+        extract(raw) {
+            this.descriptor.checkIsReady();
+
+            if (this.descriptor.hasKey && typeof raw === 'object' && !raw.hasOwnProperty(this.descriptor.key)) {
+                if (this.descriptor.hasDefault) return this.descriptor.defaultValue;
+                if (this.descriptor.hasModifier(Modifier.MAYBE)) return null;
+                if (this.descriptor.hasModifier(Modifier.OPTIONAL)) return MissingKeyOrValue;
+                throw new MissingKeyError(this.descriptor.key, raw);
+            }
+
+            return this.convert(this.descriptor.hasKey ? raw[this.descriptor.key] : raw);
+        }
+
+        /**
+         * Converts a value according to descriptor. Applies mutator when applicable.
+         */
+        convert(value) {
+            if ([null, undefined].includes(value)) {
+                if (this.descriptor.hasModifier(Modifier.MAYBE)) return null;
+                if (this.descriptor.hasModifier(Modifier.OPTIONAL)) return MissingKeyOrValue;
+            }
+
+            const caster = this.applyMutator(this.descriptor.type.caster);
+
+            if (this.descriptor.type instanceof HigherOrderDescriptorType) return caster(value, this.descriptor.nested);
+
+            return caster(value);
+        }
+
+        applyMutator(caster) {
+            return this.descriptor.hasMutator ? (raw, nested) => caster(this.descriptor.mutator(raw), nested) : caster;
+        }
+
+        makeNullValue() {
+            this.descriptor.checkIsReady();
+
+            const value = (() => {
+                if (this.descriptor.hasDefault) return this.descriptor.defaultValue;
+
+                if (this.descriptor.type instanceof HigherOrderDescriptorType) this.descriptor.type.makeNullValue(this.descriptor.type.caster, this.descriptor.nested);
+                return this.descriptor.type.makeNullValue(this.descriptor.type.caster);
+            })();
+
+            return this.convert(value);
+        }
+
+        static fromSpecificationEntry(key, specificationValue) {
+            const descriptor = Descriptor.fromSpecificationValue(specificationValue).setKey(key);
+            return new Extractor(descriptor);
+        }
+    }
+
+    const $Any = new DescriptorProxy(AnyDescriptorType);
+    const $String = new DescriptorProxy(StringDescriptorType);
+    const $Number = new DescriptorProxy(NumberDescriptorType);
+    const $Boolean = new DescriptorProxy(BooleanDescriptorType);
+    const $Date = new DescriptorProxy(DateDescriptorType);
+    const $One = new DescriptorProxy(NestedDescriptorType);
+    const $Many = new DescriptorProxy(ArrayDescriptorType);
+
+    exports.$Any = $Any;
+    exports.$Boolean = $Boolean;
+    exports.$Date = $Date;
+    exports.$Many = $Many;
+    exports.$Number = $Number;
+    exports.$One = $One;
+    exports.$String = $String;
+    exports.Blueprint = Blueprint;
+    exports.IllegalModifierError = IllegalModifierError;
+    exports.MissingKeyError = MissingKeyError;
+    exports.blueprint = blueprint;
+    exports.factory = factory;
+
+    Object.defineProperty(exports, '__esModule', { value: true });
+
+})));
