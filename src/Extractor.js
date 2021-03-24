@@ -58,7 +58,7 @@ export class Extractor {
             if (this.descriptor.hasDefault) return this.descriptor.defaultValue;
 
             if (this.descriptor.type instanceof HigherOrderDescriptorType)
-                this.descriptor.type.makeNullValue(this.descriptor.nested);
+                return this.descriptor.type.makeNullValue(this.descriptor.nested);
             return this.descriptor.type.makeNullValue();
         })();
 

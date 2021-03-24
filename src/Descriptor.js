@@ -49,23 +49,23 @@ export class Descriptor {
         const attempts = [
             {
                 condition: (x) => x instanceof DescriptorProxy,
-                set: (proxy) => (this.nested = (raw) => new Extractor(proxy.eject()).extract(raw))
+                set: (proxy) => (this.nested = (raw) => new Extractor(proxy.eject()).extract(raw)) // not a 'true' factory -> does not produce null values!
             },
             {
                 condition: (x) => x instanceof Descriptor,
-                set: (descriptor) => (this.nested = (raw) => new Extractor(descriptor).extract(raw))
+                set: (descriptor) => (this.nested = (raw) => new Extractor(descriptor).extract(raw)) // not a 'true' factory -> does not produce null values!
             },
             {
                 condition: (x) => x instanceof Function,
-                set: (fn) => (this.nested = fn)
+                set: (fn) => (this.nested = fn) // produces null values depending on what is given
             },
             {
                 condition: (x) => x instanceof Blueprint,
-                set: (blueprint) => (this.nested = (raw) => blueprint.make(raw))
+                set: (blueprint) => (this.nested = (raw) => blueprint.make(raw)) // 'true' factory -> produces null values reliably
             },
             {
                 condition: (x) => typeof x === 'object',
-                set: (specification) => (this.nested = factory(specification))
+                set: (specification) => (this.nested = factory(specification)) // 'true' factory -> produces null values reliably
             }
         ];
 

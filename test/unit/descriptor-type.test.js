@@ -36,11 +36,11 @@ describe('DescriptorTypes', () => {
 
     test('NestedDescriptorType', () => {
         expect(NestedDescriptorType.convert((x) => x, '1')).toBe('1');
-        expect(NestedDescriptorType.makeNullValue(AnyDescriptorType)).toStrictEqual(null);
+        expect(NestedDescriptorType.makeNullValue((raw) => '1')).toStrictEqual('1');
     });
 
     test('ArrayDescriptorType', () => {
         expect(ArrayDescriptorType.convert((x) => x, ['1'])).toStrictEqual(['1']);
-        expect(ArrayDescriptorType.makeNullValue(AnyDescriptorType)).toStrictEqual([]);
+        expect(ArrayDescriptorType.makeNullValue((raw) => '1')).toStrictEqual([]);
     });
 });
