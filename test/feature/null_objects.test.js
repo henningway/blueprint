@@ -1,4 +1,4 @@
-const { blueprint, $Any, $String, $Number, $Boolean, $Date, $One, $Many } = require('../dist');
+const { blueprint, $Any, $String, $Number, $Boolean, $Date, $One, $Many } = require('../../dist');
 
 it('can create null objects', () => {
     const bookBlueprint = blueprint({

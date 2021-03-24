@@ -9,7 +9,7 @@ const {
     $One,
     $Many,
     MissingKeyError
-} = require('../dist');
+} = require('../../dist');
 
 test('empty blueprint provides empty object', () => {
     expect(blueprint().make()).toStrictEqual({});

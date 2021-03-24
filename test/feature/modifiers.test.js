@@ -9,7 +9,7 @@ const {
     $One,
     $Many,
     IllegalModifierError
-} = require('../dist');
+} = require('../../dist');
 
 it('allows for missing keys or values with maybe', () => {
     const bookBlueprint = blueprint({

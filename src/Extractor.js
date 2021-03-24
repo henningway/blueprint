@@ -41,16 +41,18 @@ export class Extractor {
             if (this.descriptor.hasModifier(Modifier.OPTIONAL)) return MissingKeyOrValue;
         }
 
-        const caster = this.applyMutator(this.descriptor.type.caster);
+        const type = this.descriptor.type;
+        // const caster = this.applyMutator(type.convertValue.bind(type));
 
-        if (this.descriptor.type instanceof HigherOrderDescriptorType) return caster(value, this.descriptor.nested);
+        if (this.descriptor.type instanceof HigherOrderDescriptorType)
+            return type.convertValue(value, this.descriptor.nested);
 
-        return caster(value);
+        return type.convertValue(value);
     }
 
-    applyMutator(caster) {
-        return this.descriptor.hasMutator ? (raw, nested) => caster(this.descriptor.mutator(raw), nested) : caster;
-    }
+    // applyMutator(caster) {
+    //     return this.descriptor.hasMutator ? (raw, nested) => caster(this.descriptor.mutator(raw), nested) : caster;
+    // }
 
     makeNullValue() {
         this.descriptor.checkIsReady();
@@ -59,8 +61,8 @@ export class Extractor {
             if (this.descriptor.hasDefault) return this.descriptor.defaultValue;
 
             if (this.descriptor.type instanceof HigherOrderDescriptorType)
-                this.descriptor.type.makeNullValue(this.descriptor.type.caster, this.descriptor.nested);
-            return this.descriptor.type.makeNullValue(this.descriptor.type.caster);
+                this.descriptor.type.makeNullValue(this.descriptor.nested);
+            return this.descriptor.type.makeNullValue();
         })();
 
         return this.convert(value);

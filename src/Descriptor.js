@@ -21,10 +21,20 @@ export class Descriptor {
     key;
     nested;
     defaultValue;
+    mutator;
     _modifiers = [];
 
     constructor(type) {
         this.type = type;
+
+        return new Proxy(this, {
+            get(target, prop, receiver) {
+                if (Reflect.has(target, prop)) return Reflect.get(target, prop, receiver);
+
+                target._addModifier(prop);
+                return receiver;
+            }
+        });
     }
 
     // SET
@@ -36,7 +46,6 @@ export class Descriptor {
     }
 
     trySetNested(value) {
-        //(raw) => new Extractor(this.descriptor.caster).extract(raw)
         const attempts = [
             {
                 condition: (x) => x instanceof DescriptorProxy,
@@ -60,7 +69,7 @@ export class Descriptor {
             }
         ];
 
-        return attempts.some((attempt, index) => {
+        return attempts.some((attempt) => {
             if (attempt.condition(value)) {
                 attempt.set(value);
                 return true;
@@ -70,7 +79,7 @@ export class Descriptor {
         });
     }
 
-    setDefault(value) {
+    default(value) {
         this.defaultValue = value;
         return this;
     }
@@ -81,13 +90,17 @@ export class Descriptor {
         this.mutator = mutator;
     }
 
-    _addModifier(modifiers) {
-        this._modifiers.push(modifiers);
+    _addModifier(modifier) {
+        assert(typeof modifier === 'string', 'Modifier is expected to be of type string.');
+
+        if (!Modifier.has(modifier)) throw new IllegalModifierError(modifier);
+
+        this._modifiers.push(modifier);
     }
 
     // INTERROGATE
     get hasKey() {
-        return this.key !== null;
+        return this.key !== undefined;
     }
 
     get hasDefault() {
@@ -133,12 +146,12 @@ export class Descriptor {
 }
 
 export class DescriptorProxy extends Function {
-    _descriptor;
+    _type;
 
     constructor(type) {
         super();
 
-        this._descriptor = new Descriptor(type);
+        this._type = type;
 
         return new Proxy(this, {
             get: (target, prop, receiver) => {
@@ -154,17 +167,18 @@ export class DescriptorProxy extends Function {
         if (Reflect.has(target, prop)) return Reflect.get(target, prop, receiver);
 
         if (Modifier.has(prop)) {
-            this._descriptor = target.eject();
-            this._descriptor._addModifier(prop);
+            const descriptor = target.eject();
+            descriptor._addModifier(prop);
 
-            return this;
+            return descriptor;
         }
 
         if (prop === 'default') {
-            this._descriptor = target.eject();
+            const descriptor = target.eject();
+
             return (value) => {
-                this._descriptor.setDefault(value);
-                return this;
+                descriptor.default(value);
+                return descriptor;
             };
         }
 
@@ -172,17 +186,24 @@ export class DescriptorProxy extends Function {
     }
 
     _call(...args) {
-        if (args.length > 0) {
-            if (this._descriptor.trySetNested(args[0])) args.shift();
+        const descriptor = this.eject();
+
+        if (args.length < 1) return descriptor;
+
+        if (descriptor.type instanceof HigherOrderDescriptorType) {
+            if (!descriptor.trySetNested(args.shift())) throw new BlueprintSpecificationError();
         }
 
-        if (args.length > 0) this._descriptor.setKey(args.shift());
-        if (args.length > 0) this._descriptor.setMutator(args.shift());
+        if (args.length < 1) return descriptor;
+        descriptor.setKey(args.shift());
 
-        return this;
+        if (args.length < 1) return descriptor;
+        descriptor.setMutator(args.shift());
+
+        return descriptor;
     }
 
     eject() {
-        return this._descriptor;
+        return new Descriptor(this._type);
     }
 }
