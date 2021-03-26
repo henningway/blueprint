@@ -12,12 +12,8 @@ export class Blueprint {
         Object.entries(this.specification).forEach(([key, specificationValue]) => {
             const extractor = Extractor.fromSpecificationEntry(key, specificationValue);
 
-            if (makeNullObject) {
-                result[key] = extractor.makeNullValue();
-                return;
-            }
+            const value = makeNullObject ? extractor.makeNullValue() : extractor.extract(raw);
 
-            const value = extractor.extract(raw);
             if (value !== MissingKeyOrValue) result[key] = value;
         });
 

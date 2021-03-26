@@ -49,7 +49,7 @@ test.each([{ price: $Number.optional.maybe }, { price: $Number.maybe.optional }]
         const Book = factory(spec);
 
         expect(Book({ title: 'The Name of the Wind' })).toStrictEqual({ price: null });
-        expect(Book()).toStrictEqual({ price: 0 }); // @TODO currently null objects ignore modifiers
+        expect(Book()).toStrictEqual({ price: null });
     }
 );
 

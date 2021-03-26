@@ -55,7 +55,6 @@ test('readme example', () => {
         pages: 0,
         genres: [],
         inStock: false,
-        price: 0,
         isHardCover: false
     });
 });

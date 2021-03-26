@@ -54,6 +54,9 @@ export class Extractor {
     makeNullValue() {
         this.descriptor.checkIsReady();
 
+        if (this.descriptor.hasModifier(Modifier.MAYBE)) return null;
+        if (this.descriptor.hasModifier(Modifier.OPTIONAL)) return MissingKeyOrValue;
+
         const value = (() => {
             if (this.descriptor.hasDefault) return this.descriptor.defaultValue;
 
