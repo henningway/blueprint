@@ -25,7 +25,7 @@ describe('null object creation', () => {
         });
     });
 
-    test('omits optional', () => {
+    it('omits optional', () => {
         expect(blueprint({ title: $String, pages: $Number.optional }).make()).toStrictEqual({ title: '' });
     });
 });

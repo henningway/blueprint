@@ -1,5 +1,7 @@
 import {
     Blueprint,
+    CustomDescriptor,
+    CustomHigherOrderDescriptor,
     Descriptor,
     DescriptorProxy,
     Extractor,
@@ -27,6 +29,8 @@ const $Many = new DescriptorProxy(ArrayDescriptorType);
 
 export {
     Blueprint,
+    CustomDescriptor,
+    CustomHigherOrderDescriptor,
     Descriptor,
     DescriptorProxy,
     Extractor,

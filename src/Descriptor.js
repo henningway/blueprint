@@ -203,3 +203,11 @@ export class DescriptorProxy extends Function {
         return new Descriptor(this._type);
     }
 }
+
+export function CustomDescriptor(name, convert, makeNullValue) {
+    return new DescriptorProxy(new DescriptorType(name, convert, makeNullValue));
+}
+
+export function CustomHigherOrderDescriptor(name, convert, makeNullValue) {
+    return new DescriptorProxy(new HigherOrderDescriptorType(name, convert, makeNullValue));
+}
