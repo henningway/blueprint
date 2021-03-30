@@ -1,11 +1,4 @@
-import {
-    BlueprintSpecificationError,
-    DescriptorType,
-    MissingKeyOrValue,
-    Descriptor,
-    Extractor,
-    empty
-} from './internal';
+import { MissingKeyOrValue, Extractor, empty } from './internal';
 
 export class Blueprint {
     constructor(specification = {}) {
@@ -16,22 +9,11 @@ export class Blueprint {
         const result = {};
         const makeNullObject = empty(raw);
 
-        Object.entries(this.specification).forEach(([key, descriptor]) => {
-            if (!(descriptor instanceof Descriptor)) {
-                const type = typeof descriptor;
-                if (descriptor instanceof Blueprint || type === 'function' || type === 'object')
-                    descriptor = new Descriptor(DescriptorType.NESTED)(descriptor);
-                else throw new BlueprintSpecificationError(type);
-            }
+        Object.entries(this.specification).forEach(([key, specificationValue]) => {
+            const extractor = Extractor.fromSpecificationEntry(key, specificationValue);
 
-            const extractor = new Extractor(descriptor.eject().setKey(key));
+            const value = makeNullObject ? extractor.makeNullValue() : extractor.extract(raw);
 
-            if (makeNullObject) {
-                result[key] = extractor.makeNullValue();
-                return;
-            }
-
-            const value = extractor.extract(raw);
             if (value !== MissingKeyOrValue) result[key] = value;
         });
 

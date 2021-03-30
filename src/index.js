@@ -1,32 +1,52 @@
 import {
-    Descriptor,
     Blueprint,
+    Descriptor,
+    DescriptorProxy,
+    Extractor,
+    Modifier,
     blueprint,
     factory,
     MissingKeyError,
     IllegalModifierError,
-    DescriptorType
+    AnyDescriptorType,
+    StringDescriptorType,
+    NumberDescriptorType,
+    BooleanDescriptorType,
+    DateDescriptorType,
+    NestedDescriptorType,
+    ArrayDescriptorType
 } from './internal';
 
-const $Any = new Descriptor(DescriptorType.ANY);
-const $String = new Descriptor(DescriptorType.STRING);
-const $Number = new Descriptor(DescriptorType.NUMBER);
-const $Boolean = new Descriptor(DescriptorType.BOOLEAN);
-const $Date = new Descriptor(DescriptorType.DATE);
-const $One = new Descriptor(DescriptorType.NESTED);
-const $Many = new Descriptor(DescriptorType.ARRAY);
+const $Any = new DescriptorProxy(AnyDescriptorType);
+const $String = new DescriptorProxy(StringDescriptorType);
+const $Number = new DescriptorProxy(NumberDescriptorType);
+const $Boolean = new DescriptorProxy(BooleanDescriptorType);
+const $Date = new DescriptorProxy(DateDescriptorType);
+const $One = new DescriptorProxy(NestedDescriptorType);
+const $Many = new DescriptorProxy(ArrayDescriptorType);
 
 export {
     Blueprint,
+    Descriptor,
+    DescriptorProxy,
+    Extractor,
+    Modifier,
     blueprint,
     factory,
+    MissingKeyError,
+    IllegalModifierError,
+    AnyDescriptorType,
+    StringDescriptorType,
+    NumberDescriptorType,
+    BooleanDescriptorType,
+    DateDescriptorType,
+    NestedDescriptorType,
+    ArrayDescriptorType,
     $Any,
     $String,
     $Number,
     $Boolean,
     $Date,
     $One,
-    $Many,
-    MissingKeyError,
-    IllegalModifierError
+    $Many
 };

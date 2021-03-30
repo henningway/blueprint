@@ -1,6 +1,6 @@
 export const MissingKeyError = class extends Error {
-    constructor(key) {
-        super(`The key '${key}' is missing from the object to be converted.`);
+    constructor(key, raw) {
+        super(`The key '${key}' is missing from the object to be converted: ${JSON.stringify(raw, null, 2)}.`);
         this.name = 'MissingKeyError';
     }
 };

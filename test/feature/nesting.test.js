@@ -1,4 +1,4 @@
-const { blueprint, factory, $String, $Number, $One, $Many } = require('../dist');
+const { blueprint, factory, $String, $Number, $One, $Many } = require('../../dist');
 
 it.each([
     { title: $String, author: { name: $String, age: $Number } },

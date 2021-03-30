@@ -1,4 +1,4 @@
-const { blueprint, factory, $String, $Number, $Boolean, $Many, $One } = require('../dist');
+const { blueprint, factory, $String, $Number, $Boolean, $Many, $One } = require('../../dist');
 
 it('can combine nesting with modifiers', () => {
     const Book = factory({ title: $String, author: $One(factory({ name: $String })).maybe });
@@ -55,7 +55,6 @@ test('readme example', () => {
         pages: 0,
         genres: [],
         inStock: false,
-        price: 0,
         isHardCover: false
     });
 });
