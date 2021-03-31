@@ -101,11 +101,11 @@ test('can provide alternate keys', () => {
 
 it('can mutate values with mutator callbacks', () => {
     const bookBlueprint = blueprint({
-        title: $String('title', (x) => x.toUpperCase()),
-        long: $Boolean('pages', (x) => x > 500),
-        softCover: $Boolean('hardCover', (x) => !x),
-        author: $One($String, 'author', (x) => 'REDACTED'),
-        genres: $Many($String, 'genres', (x) => x + ' book')
+        title: $String('title').after((x) => x.toUpperCase()),
+        long: $Boolean('pages').before((x) => x > 500),
+        softCover: $Boolean('hardCover').after((x) => !x),
+        author: $One($String).after(() => 'REDACTED'),
+        genres: $Many($String.after((x) => x + ' book'))
     });
 
     expect(

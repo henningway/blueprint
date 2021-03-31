@@ -20,7 +20,7 @@ test('readme example', () => {
         genres: $Many($String),
         inStock: $Boolean.default(false),
         price: $Number.optional,
-        isHardCover: $Boolean('coverType', (type) => type === 'hardcover')
+        isHardCover: $Boolean('coverType').before((type) => type === 'hardcover')
     });
 
     expect(

@@ -21,7 +21,7 @@ export class DescriptorType {
 
     _checkArities() {
         assert(this._validate.length === 1);
-        assert(this._convert.length === 2);
+        assert(this._convert.length === 1);
         assert(this._makeNullValue.length === 0);
     }
 
@@ -29,8 +29,8 @@ export class DescriptorType {
         if (!this._validate(raw)) throw new ValidationError(raw, key);
     }
 
-    convert(raw, mutator = (x) => x) {
-        return this._convert(raw, mutator);
+    convert(raw) {
+        return this._convert(raw);
     }
 
     makeNullValue() {
@@ -45,15 +45,14 @@ export class HigherOrderDescriptorType extends DescriptorType {
 
     _checkArities() {
         assert(this._validate.length === 1);
-        assert(this._convert.length === 3);
+        assert(this._convert.length === 2);
         assert(this._makeNullValue.length === 1);
     }
 
-    convert(factory, raw, mutator = (x) => x) {
+    convert(factory, raw) {
         assert(typeof factory === 'function');
-        assert(typeof mutator === 'function');
 
-        return this._convert(factory, raw, mutator);
+        return this._convert(factory, raw);
     }
 
     makeNullValue(factory) {
@@ -63,49 +62,46 @@ export class HigherOrderDescriptorType extends DescriptorType {
     }
 }
 
-// @TODO replace implicit casting by validation (maybe make optional behaviour)
-// @TODO consider not exposing mutators
-// @TODO consider splitting mutators into before and after
 export const AnyDescriptorType = new DescriptorType(
     (raw) => true,
-    (raw, mutator) => mutator(raw),
+    (raw) => raw,
     () => null,
     'AnyDescriptorType'
 );
 export const StringDescriptorType = new DescriptorType(
     (raw) => typeof raw === 'string',
-    (raw, mutator) => mutator(raw),
+    (raw) => raw,
     () => '',
     'StringDescriptorType'
 );
 export const NumberDescriptorType = new DescriptorType(
     (raw) => typeof raw === 'number',
-    (raw, mutator) => mutator(raw),
+    (raw) => raw,
     () => 0,
     'NumberDescriptorType'
 );
 export const BooleanDescriptorType = new DescriptorType(
     (raw) => typeof raw === 'boolean',
-    (raw, mutator) => mutator(raw),
+    (raw) => raw,
     () => false,
     'BooleanDescriptorType'
 );
 export const DateDescriptorType = new DescriptorType(
     (raw) => raw instanceof Date || new Date(raw).toString() !== 'Invalid Date',
-    (raw, mutator) => (raw instanceof Date ? mutator(raw) : new Date(mutator(raw))),
+    (raw) => (raw instanceof Date ? raw : new Date(raw)),
     () => new Date('1970-01-01'),
     'DateDescriptorType'
 );
 
 export const NestedDescriptorType = new HigherOrderDescriptorType(
     (raw) => true, // @TODO provide better validation for NestedDescriptorType
-    (convert, raw, mutator) => convert(mutator(raw)),
+    (convert, raw) => convert(raw),
     (factory) => factory(),
     'NestedDescriptorType'
 );
 export const ArrayDescriptorType = new HigherOrderDescriptorType(
     (raw) => raw instanceof Array,
-    (convert, raw, mutator) => raw.map((x) => convert(mutator(x))),
+    (convert, raw) => raw.map((x) => convert(x)),
     (factory) => [],
     'ArrayDescriptorType'
 );

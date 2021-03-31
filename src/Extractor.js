@@ -33,7 +33,7 @@ export class Extractor {
     }
 
     /**
-     * Converts a value according to descriptor. Applies mutator when applicable.
+     * Converts a value according to descriptor. Applies mutators when applicable.
      */
     convert(value) {
         if ([null, undefined].includes(value)) {
@@ -43,14 +43,18 @@ export class Extractor {
 
         const type = this.descriptor.type;
 
+        value = this.descriptor.beforeMutator(value);
+
         type.validate(value);
 
         let convert = type.convert.bind(type);
 
-        if (this.descriptor.type instanceof HigherOrderDescriptorType)
-            return convert(this.descriptor.nested, value, this.descriptor.mutator);
+        const result =
+            this.descriptor.type instanceof HigherOrderDescriptorType
+                ? convert(this.descriptor.nested, value)
+                : convert(value);
 
-        return convert(value, this.descriptor.mutator);
+        return this.descriptor.afterMutator(result);
     }
 
     makeNullValue() {

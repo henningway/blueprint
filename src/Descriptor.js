@@ -21,7 +21,8 @@ export class Descriptor {
     key;
     nested;
     defaultValue;
-    mutator = (x) => x;
+    beforeMutator = (x) => x;
+    afterMutator = (x) => x;
     _modifiers = [];
 
     constructor(type) {
@@ -85,10 +86,16 @@ export class Descriptor {
         return this;
     }
 
-    setMutator(mutator) {
+    before(mutator) {
         assert(typeof mutator === 'function', 'Mutator should be a function, but it is not.');
+        this.beforeMutator = mutator;
+        return this;
+    }
 
-        this.mutator = mutator;
+    after(mutator) {
+        assert(typeof mutator === 'function', 'Mutator should be a function, but it is not.');
+        this.afterMutator = mutator;
+        return this;
     }
 
     _addModifier(modifier) {
@@ -170,11 +177,11 @@ export class DescriptorProxy extends Function {
             return descriptor;
         }
 
-        if (prop === 'default') {
+        if (['default', 'before', 'after'].includes(prop)) {
             const descriptor = target.eject();
 
             return (value) => {
-                descriptor.default(value);
+                descriptor[prop](value);
                 return descriptor;
             };
         }
@@ -193,9 +200,6 @@ export class DescriptorProxy extends Function {
 
         if (args.length < 1) return descriptor;
         descriptor.setKey(args.shift());
-
-        if (args.length < 1) return descriptor;
-        descriptor.setMutator(args.shift());
 
         return descriptor;
     }

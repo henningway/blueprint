@@ -2,13 +2,13 @@ const { blueprint, CustomDescriptor, CustomHigherOrderDescriptor, $String } = re
 
 const $Shout = CustomDescriptor(
     (raw) => typeof raw === 'string',
-    (raw, mutator) => mutator(raw).toUpperCase() + '!',
+    (raw) => raw.toUpperCase() + '!',
     () => 'EMPTY'
 );
 
 const $Box = CustomHigherOrderDescriptor(
     (raw) => typeof raw === 'string',
-    (convert, raw, mutator) => new Box(convert(mutator(raw))),
+    (convert, raw) => new Box(convert(raw)),
     (factory) => new Box(factory())
 );
 
