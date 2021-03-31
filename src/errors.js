@@ -18,3 +18,14 @@ export const BlueprintSpecificationError = class extends Error {
         this.name = 'BlueprintSpecificationError';
     }
 };
+
+export const ValidationError = class extends Error {
+    constructor(value, key = null) {
+        const message = ['Property', key ? ' with key ' + key : '', ' of type ' + typeof value, ' is invalid.'].join(
+            ''
+        );
+
+        super(message);
+        this.name = 'ValidationError';
+    }
+};

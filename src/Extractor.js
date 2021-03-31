@@ -19,7 +19,6 @@ export class Extractor {
     /**
      * Takes a raw value or object. Unpacks the value to be converted when a key is present. Runs the conversion.
      */
-    // @TODO validate
     extract(raw) {
         this.descriptor.checkIsReady();
 
@@ -43,6 +42,8 @@ export class Extractor {
         }
 
         const type = this.descriptor.type;
+
+        type.validate(value);
 
         let convert = type.convert.bind(type);
 

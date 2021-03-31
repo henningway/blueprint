@@ -8,7 +8,8 @@ const {
     $Date,
     $One,
     $Many,
-    MissingKeyError
+    MissingKeyError,
+    ValidationError
 } = require('../../dist');
 
 test('empty blueprint provides empty object', () => {
@@ -16,18 +17,13 @@ test('empty blueprint provides empty object', () => {
 });
 
 it('can extract strings', () => {
-    const bookBlueprint = blueprint({ title: $String });
-
-    expect(bookBlueprint.make({ title: 'The Name of the Wind' })).toStrictEqual({
+    expect(blueprint({ title: $String }).make({ title: 'The Name of the Wind' })).toStrictEqual({
         title: 'The Name of the Wind'
     });
 });
 
 it('can extract numbers', () => {
-    const bookBlueprint = blueprint({ pages: $Number });
-
-    expect(bookBlueprint.make({ pages: 662 })).toStrictEqual({ pages: 662 });
-    expect(bookBlueprint.make({ pages: '662' })).toStrictEqual({ pages: 662 });
+    expect(blueprint({ pages: $Number }).make({ pages: 662 })).toStrictEqual({ pages: 662 });
 });
 
 it('can extract booleans', () => {
@@ -35,8 +31,6 @@ it('can extract booleans', () => {
 
     expect(bookBlueprint.make({ hardCover: true })).toStrictEqual({ hardCover: true });
     expect(bookBlueprint.make({ hardCover: false })).toStrictEqual({ hardCover: false });
-    expect(bookBlueprint.make({ hardCover: 'true' })).toStrictEqual({ hardCover: true });
-    expect(bookBlueprint.make({ hardCover: 'false' })).toStrictEqual({ hardCover: true }); // @TODO decide whether library should deviate from javascript default behaviour
 });
 
 test.each([
@@ -64,9 +58,7 @@ test.each([
 });
 
 test('$Many can extract arrays', () => {
-    const bookBlueprint = blueprint({ genres: $Many($String) });
-
-    expect(bookBlueprint.make({ genres: ['fantasy', 'fiction'] })).toStrictEqual({
+    expect(blueprint({ genres: $Many($String) }).make({ genres: ['fantasy', 'fiction'] })).toStrictEqual({
         genres: ['fantasy', 'fiction']
     });
 });
@@ -134,7 +126,14 @@ it('can mutate values with mutator callbacks', () => {
 });
 
 it('revolts when a key is missing', () => {
-    const bookBlueprint = blueprint({ hardCover: $Boolean });
+    expect(() => blueprint({ hardCover: $Boolean }).make({ title: 'The Name of the Wind' })).toThrow(MissingKeyError);
+});
 
-    expect(() => bookBlueprint.make({ title: 'The Name of the Wind' })).toThrow(MissingKeyError);
+it('revolts when a value is invalid', () => {
+    expect(() => blueprint({ hardCover: $Boolean }).make({ hardCover: true })).not.toThrow(ValidationError);
+    expect(() => blueprint({ hardCover: $Boolean }).make({ hardCover: 'true' })).toThrow(ValidationError);
+    expect(() => blueprint({ genres: $Many($String) }).make({ genres: ['fantasy', 'fiction'] })).not.toThrow(
+        ValidationError
+    );
+    expect(() => blueprint({ genres: $Many($String) }).make({ genres: ['fantasy', 1] })).toThrow(ValidationError);
 });
