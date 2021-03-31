@@ -1,13 +1,11 @@
 const { blueprint, CustomDescriptor, CustomHigherOrderDescriptor, $String } = require('../../dist');
 
 const $Shout = CustomDescriptor(
-    'Shout',
     (raw, mutator) => mutator(raw).toUpperCase() + '!',
     () => 'EMPTY'
 );
 
 const $Box = CustomHigherOrderDescriptor(
-    'Box',
     (convert, raw, mutator) => new Box(convert(mutator(raw))),
     (factory) => new Box(factory())
 );

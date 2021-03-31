@@ -5,14 +5,13 @@ export class DescriptorType {
     _convert;
     _makeNullValue;
 
-    // @TODO make name optional -> is nice for debugging, but should not be forced upon user
-    constructor(name, convert, makeNullValue) {
+    constructor(convert, makeNullValue, name = '') {
         assert(typeof convert === 'function', "Parameter 'convert' should be a function.");
         assert(typeof makeNullValue === 'function', "Parameter 'makeNullValue' should be a function.");
 
-        this._name = name;
         this._convert = convert;
         this._makeNullValue = makeNullValue;
+        this._name = name;
 
         this._checkArities();
     }
@@ -59,38 +58,38 @@ export class HigherOrderDescriptorType extends DescriptorType {
 // @TODO consider not exposing mutators
 // @TODO consider splitting mutators into before and after
 export const AnyDescriptorType = new DescriptorType(
-    'AnyDescriptorType',
     (raw, mutator) => mutator(raw),
-    () => null
+    () => null,
+    'AnyDescriptorType'
 );
 export const StringDescriptorType = new DescriptorType(
-    'StringDescriptorType',
     (raw, mutator) => String(mutator(raw)),
-    () => ''
+    () => '',
+    'StringDescriptorType'
 );
 export const NumberDescriptorType = new DescriptorType(
-    'NumberDescriptorType',
     (raw, mutator) => Number(mutator(raw)),
-    () => 0
+    () => 0,
+    'NumberDescriptorType'
 );
 export const BooleanDescriptorType = new DescriptorType(
-    'BooleanDescriptorType',
     (raw, mutator) => Boolean(mutator(raw)),
-    () => false
+    () => false,
+    'BooleanDescriptorType'
 );
 export const DateDescriptorType = new DescriptorType(
-    'DateDescriptorType',
     (raw, mutator) => (raw instanceof Date ? mutator(raw) : new Date(mutator(raw))),
-    () => new Date('1970-01-01')
+    () => new Date('1970-01-01'),
+    'DateDescriptorType'
 );
 
 export const NestedDescriptorType = new HigherOrderDescriptorType(
-    'NestedDescriptorType',
     (convert, raw, mutator) => convert(mutator(raw)),
-    (factory) => factory()
+    (factory) => factory(),
+    'NestedDescriptorType'
 );
 export const ArrayDescriptorType = new HigherOrderDescriptorType(
-    'ArrayDescriptorType',
     (convert, raw, mutator) => raw.map((x) => convert(mutator(x))),
-    (factory) => []
+    (factory) => [],
+    'ArrayDescriptorType'
 );
