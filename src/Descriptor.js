@@ -45,6 +45,7 @@ export class Descriptor {
         return this;
     }
 
+    // @TODO make everything factories - or blueprints!
     trySetNested(value) {
         const attempts = [
             {

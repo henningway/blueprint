@@ -5,6 +5,7 @@ export class DescriptorType {
     _convert;
     _makeNullValue;
 
+    // @TODO make name optional -> is nice for debugging, but should not be forced upon user
     constructor(name, convert, makeNullValue) {
         assert(typeof convert === 'function', "Parameter 'convert' should be a function.");
         assert(typeof makeNullValue === 'function', "Parameter 'makeNullValue' should be a function.");

@@ -1,5 +1,6 @@
 import { MissingKeyOrValue, Extractor, empty } from './internal';
 
+// @TODO allow specifications that are non-primitive-objects (Descriptor, Factory, Blueprint)
 export class Blueprint {
     constructor(specification = {}) {
         this.specification = specification;
