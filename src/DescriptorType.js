@@ -55,6 +55,9 @@ export class HigherOrderDescriptorType extends DescriptorType {
     }
 }
 
+// @TODO replace implicit casting by validation (maybe make optional behaviour)
+// @TODO consider not exposing mutators
+// @TODO consider splitting mutators into before and after
 export const AnyDescriptorType = new DescriptorType(
     'AnyDescriptorType',
     (raw, mutator) => mutator(raw),

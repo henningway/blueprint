@@ -19,6 +19,7 @@ export class Extractor {
     /**
      * Takes a raw value or object. Unpacks the value to be converted when a key is present. Runs the conversion.
      */
+    // @TODO validate
     extract(raw) {
         this.descriptor.checkIsReady();
 
