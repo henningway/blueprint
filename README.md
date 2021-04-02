@@ -55,9 +55,11 @@ bookBlueprint.make({ title: 'The Name of the Wind' }); // { title: 'The Name of 
 
 **Simple Validation**
 
-> Missing keys result in early failure.
+> Missing keys or type mismatches result in early failure.
 
-🚧 Feature needs work: Will support basic checks for type mismatches in the future.
+**Extensible**
+
+> Writing custom descriptors is a piece of cake.
 
 **Light**
 
@@ -81,10 +83,10 @@ const bookBlueprint = blueprint({
         homepage: $String
     },
     pages: $Number('length'),
-    genres: $Many($String, (genre) => genre.charAt(0).toUpperCase() + genre.slice(1)),
+    genres: $Many($String.after((genre) => genre.charAt(0).toUpperCase() + genre.slice(1))),
     inStock: $Boolean.default(false),
     price: $Number.optional,
-    isHardCover: $Boolean('coverType', (type) => type === 'hardcover')
+    isHardCover: $Boolean('coverType').before((type) => type === 'hardcover')
 });
 ```
 
@@ -173,35 +175,34 @@ Both share common parameters, but higher-order ones have one extra:
 
 -   `nested` (only higher-order descriptors): A nested descriptor, object, blueprint or factory function.
 -   `key`: They key in the object to be converted. Essentially maps one key to another. Defaults to the key the descriptor is attached to in the blueprint specification.
--   `mutator`: A callback function for custom transformations of the input value.
 
-The distinction between `$Any`, `$String`, `$Number` and `$Boolean` is small: `$String`, `$Number` and `$Boolean` cast the input value to their respective types (after applying mutators) and in case of null object creation result in values of their type. `$Any` does not perform any casting (i.e. pass through the input value as is) and results in a `null` value during null object creation.
+The distinction between basic descriptors is small: Except for `$Any` all of them check incoming values for their corresponding type and in case of null object creation result in values of their type. `$Any` does not perform any validation and results in a `null` value during null object creation.
 
 As shown in the examples above, thanks to some shifty Proxy magic you can use descriptors entirely without parameters and brackets.
 
-#### `$Any(key, mutator)`
+#### `$Any(key)`
 
-Passes through input values without casting. Results in `null` during null object creation.
+Passes input values through without validation. Results in `null` during null object creation.
 
-#### `$String(key, mutator)`
+#### `$String(key)`
 
-Casts the input value (after applying `mutator`) to type `string`. Results in `''` during null object creation.
+Checks against type `string` during validation. Results in `''` during null object creation.
 
-#### `$Number(key, mutator)`
+#### `$Number(key)`
 
-Casts the input value (after applying `mutator`) to type `number`. Results in `0` during null object creation.
+Checks against type `number` during validation. Results in `0` during null object creation.
 
-#### `$Boolean(key, mutator)`
+#### `$Boolean(key)`
 
-Casts the input value (after applying `mutator`) to type `boolean`. Results in `false` during null object creation.
+Checks against type `boolean` during validation. Results in `false` during null object creation.
 
-#### `$Date(key, mutator)`
+#### `$Date(key)`
 
 In case of the input value being a date the value is passed through. Otherwise creates a new one with `new Date(input)`. Results in the date created by `new Date('1970-01-01')` (the [Unix epoch](https://en.wikipedia.org/wiki/Unix_time)) during null object creation.
 
-#### `$One(nested, key, mutator)`
+#### `$One(nested, key)`
 
-The purpose of `$One` is to allow nesting objects, other blueprints, and factory functions inside blueprints and still provide a key, mutator, and chained modifiers to them.
+The purpose of `$One` is to allow nesting primitive objects, other blueprints, and factory functions inside blueprints and still provide a key and chained modifiers to them.
 
 All of these are equivalent:
 
@@ -212,11 +213,11 @@ All of these are equivalent:
 
 If you don't need the added functionality provided by descriptors, you can of course go without `$One`: `author: { name: $String }`.
 
-`mutator` is applied before `nested`. The result during null object creation depends on the nested specification.
+The result during null object creation depends on the nested specification.
 
-#### `$Many(nested, key, mutator)`
+#### `$Many(nested, key)`
 
-`$Many` allows converting arrays. `mutator` and `nested` are applied to each of the input array's values in this order. Results in `[]` during null object creation.
+`$Many` allows converting arrays. `nested` is applied to each of the input array's values. Results in `[]` during null object creation.
 
 ### Modifiers
 
@@ -233,6 +234,22 @@ Similar to `.maybe`, but instead of producing `null`, the property is omitted en
 #### `.default(value)`
 
 Similar to `.maybe`, but instead of producing `null`, the given default value is used. This applies to null object creation as well.
+
+#### `.before((value) => { ...; return value; })`
+
+Allows transformation of input values. The transformation function receives a single value and should return the modified value. The transformation is applied before validation.
+
+Also, in case of higher order descriptors, the transformation is applied before the nested specification takes effect. Note that the callback will receive the outer datastructure.
+
+If instead you want to transform each value in a nested datastructure, use `.before` on the nested descriptor like this:
+
+`$Many($String.before((value) => { ... }))`
+
+Use `.before` over `.after` when you want to transform a value of a different type into the intended type without receiving a `ValidationError`.
+
+#### `.after(callback)`
+
+Same as `.before`, but is applied after validation and conversion of nested values. When in doubt use this over `.before`.
 
 ## License
 
