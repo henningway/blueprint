@@ -73,6 +73,32 @@ it('can provide defaults', () => {
     });
 });
 
+it('can mutate values with mutator callbacks', () => {
+    const bookBlueprint = blueprint({
+        title: $String('title').after((x) => x.toUpperCase()),
+        long: $Boolean('pages').before((x) => x > 500),
+        softCover: $Boolean('hardCover').after((x) => !x),
+        author: $One($String).after(() => 'REDACTED'),
+        genres: $Many($String.after((x) => x + ' book'))
+    });
+
+    expect(
+        bookBlueprint.make({
+            title: 'The Name of the Wind',
+            pages: 662,
+            hardCover: true,
+            author: 'Patrick Rothfuss',
+            genres: ['fantasy', 'fiction']
+        })
+    ).toStrictEqual({
+        title: 'THE NAME OF THE WIND',
+        long: true,
+        softCover: false,
+        author: 'REDACTED',
+        genres: ['fantasy book', 'fiction book']
+    });
+});
+
 it('revolts when an illegal modifier is used', () => {
     expect(() => blueprint({ title: $Any.voldemort })).toThrow(IllegalModifierError);
 });

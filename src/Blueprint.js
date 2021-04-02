@@ -1,24 +1,35 @@
-import { MissingKeyOrValue, Extractor, empty } from './internal';
+import { empty, isPlainObject, Extractor, MissingKeyOrValue } from './internal';
 
-// @TODO allow specifications that are non-primitive-objects (Descriptor, Factory, Blueprint)
 export class Blueprint {
-    constructor(specification = {}) {
+    constructor(specification) {
         this.specification = specification;
     }
 
-    make(raw = {}) {
-        const result = {};
+    make(raw) {
+        if (isPlainObject(this.specification)) return this._makeCompound(raw);
+
+        return this._makeSimple(raw);
+    }
+
+    _makeSimple(raw) {
+        const makeNullObject = empty(raw);
+        const extractor = Extractor.fromSpecification(this.specification);
+        const value = makeNullObject ? extractor.makeNullValue() : extractor.extract(raw);
+        if (value === MissingKeyOrValue) return;
+        return value;
+    }
+
+    _makeCompound(raw) {
         const makeNullObject = empty(raw);
 
-        Object.entries(this.specification).forEach(([key, specificationValue]) => {
-            const extractor = Extractor.fromSpecificationEntry(key, specificationValue);
+        const entries = Object.entries(this.specification)
+            .map(([key, specification]) => {
+                const extractor = Extractor.fromSpecification(specification, key);
+                return [key, makeNullObject ? extractor.makeNullValue() : extractor.extract(raw)];
+            })
+            .filter(([key, value]) => value !== MissingKeyOrValue);
 
-            const value = makeNullObject ? extractor.makeNullValue() : extractor.extract(raw);
-
-            if (value !== MissingKeyOrValue) result[key] = value;
-        });
-
-        return result;
+        return Object.fromEntries(entries);
     }
 }
 

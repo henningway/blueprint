@@ -51,3 +51,13 @@ export const Enum = class {
         return Object.values(this.elements);
     }
 };
+
+// https://github.com/sindresorhus/is-plain-obj/blob/main/index.js
+export const isPlainObject = function (value) {
+    if (Object.prototype.toString.call(value) !== '[object Object]') {
+        return false;
+    }
+
+    const prototype = Object.getPrototypeOf(value);
+    return prototype === null || prototype === Object.prototype;
+};

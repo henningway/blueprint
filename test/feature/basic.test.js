@@ -12,8 +12,12 @@ const {
     ValidationError
 } = require('../../dist');
 
-test('empty blueprint provides empty object', () => {
-    expect(blueprint().make()).toStrictEqual({});
+it('can handle simple specifications', () => {
+    expect(blueprint($Any).make(1)).toBe(1);
+});
+
+it('can handle compound specifications', () => {
+    expect(blueprint({ count: $Any }).make({ count: 1 })).toStrictEqual({ count: 1 });
 });
 
 it('can extract strings', () => {
@@ -96,32 +100,6 @@ test('can provide alternate keys', () => {
         metaData: {
             tags: ['continued', 'ongoing']
         }
-    });
-});
-
-it('can mutate values with mutator callbacks', () => {
-    const bookBlueprint = blueprint({
-        title: $String('title').after((x) => x.toUpperCase()),
-        long: $Boolean('pages').before((x) => x > 500),
-        softCover: $Boolean('hardCover').after((x) => !x),
-        author: $One($String).after(() => 'REDACTED'),
-        genres: $Many($String.after((x) => x + ' book'))
-    });
-
-    expect(
-        bookBlueprint.make({
-            title: 'The Name of the Wind',
-            pages: 662,
-            hardCover: true,
-            author: 'Patrick Rothfuss',
-            genres: ['fantasy', 'fiction']
-        })
-    ).toStrictEqual({
-        title: 'THE NAME OF THE WIND',
-        long: true,
-        softCover: false,
-        author: 'REDACTED',
-        genres: ['fantasy book', 'fiction book']
     });
 });
 

@@ -135,15 +135,13 @@ export class Descriptor {
     }
 
     // FACTORY
-    static fromSpecificationValue(specificationValue) {
-        if (specificationValue instanceof Descriptor) return specificationValue;
-
-        if (specificationValue instanceof DescriptorProxy) return specificationValue.eject();
+    static fromSpecification(specification) {
+        if (specification instanceof Descriptor) return specification;
+        if (specification instanceof DescriptorProxy) return specification.eject();
 
         const descriptor = new Descriptor(NestedDescriptorType);
 
-        if (!descriptor.trySetNested(specificationValue))
-            throw new BlueprintSpecificationError(typeof specificationValue);
+        if (!descriptor.trySetNested(specification)) throw new BlueprintSpecificationError(typeof specification);
 
         return descriptor;
     }

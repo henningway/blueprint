@@ -75,8 +75,9 @@ export class Extractor {
         return this.convert(value);
     }
 
-    static fromSpecificationEntry(key, specificationValue) {
-        const descriptor = Descriptor.fromSpecificationValue(specificationValue).setKey(key);
+    static fromSpecification(specification, key = null) {
+        const descriptor = Descriptor.fromSpecification(specification);
+        if (key) descriptor.setKey(key);
         return new Extractor(descriptor);
     }
 }
