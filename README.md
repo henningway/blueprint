@@ -115,7 +115,7 @@ The result is what you'd expect:
         homepage: 'patrickrothfuss.com'
     },
     pages: 662,
-    genres: ['fantasy', 'fiction'],
+    genres: ['Fantasy', 'Fiction'],
     inStock: false,
     isHardCover: true
 }

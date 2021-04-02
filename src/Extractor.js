@@ -10,6 +10,7 @@ import {
 /**
  * Knows how to use a descriptor to extract a value from a raw object.
  */
+// @TODO support .cast modifier
 export class Extractor {
     constructor(descriptor) {
         this.descriptor = descriptor instanceof DescriptorProxy ? descriptor.eject() : descriptor;

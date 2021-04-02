@@ -17,7 +17,7 @@ test('readme example', () => {
             homepage: $String
         },
         pages: $Number('length'),
-        genres: $Many($String),
+        genres: $Many($String.after((genre) => genre.charAt(0).toUpperCase() + genre.slice(1))),
         inStock: $Boolean.default(false),
         price: $Number.optional,
         isHardCover: $Boolean('coverType').before((type) => type === 'hardcover')
@@ -41,7 +41,7 @@ test('readme example', () => {
             homepage: 'patrickrothfuss.com'
         },
         pages: 662,
-        genres: ['fantasy', 'fiction'],
+        genres: ['Fantasy', 'Fiction'],
         inStock: false,
         isHardCover: true
     });
