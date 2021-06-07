@@ -6,14 +6,21 @@ export class DescriptorType {
     _makeNullValue;
     _name;
 
-    constructor(validate, convert, makeNullValue, name = '') {
-        assert(typeof validate === 'function', "Parameter 'convert' should be a function.");
-        assert(typeof convert === 'function', "Parameter 'convert' should be a function.");
-        assert(typeof makeNullValue === 'function', "Parameter 'makeNullValue' should be a function.");
+    constructor(callbacks, name = '') {
+        ['validate', 'convert', 'makeNull'].forEach((callbackName) => {
+            assert(
+                callbacks.hasOwnProperty(callbackName),
+                `Cannot instantiate DescriptorType: missing callback '${callbackName}'.`
+            );
+            assert(
+                typeof callbacks[callbackName] === 'function',
+                `Cannot instantiate DescriptorType: '${callbackName}' should be a function.`
+            );
+        });
 
-        this._validate = validate;
-        this._convert = convert;
-        this._makeNullValue = makeNullValue;
+        this._validate = callbacks.validate;
+        this._convert = callbacks.convert;
+        this._makeNullValue = callbacks.makeNull;
         this._name = name;
 
         this._checkArities();
@@ -63,45 +70,59 @@ export class HigherOrderDescriptorType extends DescriptorType {
 }
 
 export const AnyDescriptorType = new DescriptorType(
-    (raw) => true,
-    (raw) => raw,
-    () => null,
+    {
+        validate: (raw) => true,
+        convert: (raw) => raw,
+        makeNull: () => null
+    },
     'AnyDescriptorType'
 );
 export const StringDescriptorType = new DescriptorType(
-    (raw) => typeof raw === 'string',
-    (raw) => raw,
-    () => '',
+    {
+        validate: (raw) => typeof raw === 'string',
+        convert: (raw) => raw,
+        makeNull: () => ''
+    },
     'StringDescriptorType'
 );
 export const NumberDescriptorType = new DescriptorType(
-    (raw) => typeof raw === 'number',
-    (raw) => raw,
-    () => 0,
+    {
+        validate: (raw) => typeof raw === 'number',
+        convert: (raw) => raw,
+        makeNull: () => 0
+    },
     'NumberDescriptorType'
 );
 export const BooleanDescriptorType = new DescriptorType(
-    (raw) => typeof raw === 'boolean',
-    (raw) => raw,
-    () => false,
+    {
+        validate: (raw) => typeof raw === 'boolean',
+        convert: (raw) => raw,
+        makeNull: () => false
+    },
     'BooleanDescriptorType'
 );
 export const DateDescriptorType = new DescriptorType(
-    (raw) => raw instanceof Date || new Date(raw).toString() !== 'Invalid Date',
-    (raw) => (raw instanceof Date ? raw : new Date(raw)),
-    () => new Date('1970-01-01'),
+    {
+        validate: (raw) => raw instanceof Date || new Date(raw).toString() !== 'Invalid Date',
+        convert: (raw) => (raw instanceof Date ? raw : new Date(raw)),
+        makeNull: () => new Date('1970-01-01')
+    },
     'DateDescriptorType'
 );
 
 export const NestedDescriptorType = new HigherOrderDescriptorType(
-    (raw) => true, // @TODO provide better validation for NestedDescriptorType
-    (convert, raw) => convert(raw),
-    (factory) => factory(),
+    {
+        validate: (raw) => true, // @TODO provide better validation for NestedDescriptorType
+        convert: (convertBoxed, raw) => convertBoxed(raw),
+        makeNull: (factory) => factory()
+    },
     'NestedDescriptorType'
 );
 export const ArrayDescriptorType = new HigherOrderDescriptorType(
-    (raw) => raw instanceof Array,
-    (convert, raw) => raw.map((x) => convert(x)),
-    (factory) => [],
+    {
+        validate: (raw) => raw instanceof Array,
+        convert: (convertBoxed, raw) => raw.map((x) => convertBoxed(x)),
+        makeNull: (factory) => []
+    },
     'ArrayDescriptorType'
 );

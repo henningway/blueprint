@@ -1,16 +1,16 @@
 const { blueprint, CustomDescriptor, CustomHigherOrderDescriptor, $String } = require('../../dist');
 
-const $Shout = CustomDescriptor(
-    (raw) => typeof raw === 'string',
-    (raw) => raw.toUpperCase() + '!',
-    () => 'EMPTY'
-);
+const $Shout = CustomDescriptor({
+    validate: (raw) => typeof raw === 'string',
+    convert: (raw) => raw.toUpperCase() + '!',
+    makeNull: () => 'EMPTY'
+});
 
-const $Box = CustomHigherOrderDescriptor(
-    (raw) => typeof raw === 'string',
-    (convert, raw) => new Box(convert(raw)),
-    (factory) => new Box(factory())
-);
+const $Box = CustomHigherOrderDescriptor({
+    validate: (raw) => typeof raw === 'string',
+    convert: (convertBoxed, raw) => new Box(convertBoxed(raw)),
+    makeNull: (factory) => new Box(factory())
+});
 
 class Box {
     constructor(wrapped) {
