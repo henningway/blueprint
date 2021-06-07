@@ -32,7 +32,6 @@
         "rollup-plugin-filesize": "^9.1.1",
         "rollup-plugin-terser": "^7.0.2"
     },
-    "dependencies": {},
     "prettier": {
         "printWidth": 120,
         "singleQuote": true,
