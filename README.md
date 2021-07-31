@@ -4,6 +4,8 @@
 ![bundle size](https://badgen.net/bundlephobia/minzip/@henningway/blueprint)
 ![npm version](https://badgen.net/npm/v/@henningway/blueprint)
 
+> NOTE: Project is work in progress and might forever be.
+
 Declarative object conversion and creation for JavaScript.
 
 ## Contents
