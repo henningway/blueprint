@@ -148,8 +148,6 @@ export class Descriptor {
 }
 
 export class DescriptorProxy extends Function {
-    _type;
-
     constructor(type) {
         super();
 
