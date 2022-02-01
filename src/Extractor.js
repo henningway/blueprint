@@ -37,6 +37,10 @@ export class Extractor {
      * Converts a value according to descriptor. Applies mutators when applicable.
      */
     convert(value) {
+        if (this.descriptor.omitWhenPredicate(value)) {
+            return MissingKeyOrValue;
+        }
+
         if ([null, undefined].includes(value)) {
             if (this.descriptor.hasModifier(Modifier.MAYBE)) return null;
             if (this.descriptor.hasModifier(Modifier.OPTIONAL)) return MissingKeyOrValue;

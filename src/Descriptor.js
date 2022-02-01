@@ -23,6 +23,7 @@ export class Descriptor {
     defaultValue;
     beforeMutator = (x) => x;
     afterMutator = (x) => x;
+    omitWhenPredicate = (x) => false;
     _modifiers = [];
 
     constructor(type) {
@@ -95,6 +96,12 @@ export class Descriptor {
     after(mutator) {
         assert(typeof mutator === 'function', 'Mutator should be a function, but it is not.');
         this.afterMutator = mutator;
+        return this;
+    }
+
+    omitWhen(predicate) {
+        assert(typeof predicate === 'function', 'Predicate should be a function, but it is not.');
+        this.omitWhenPredicate = predicate;
         return this;
     }
 

@@ -233,11 +233,15 @@ When missing from the raw object (key not present OR value is `null` OR value is
 
 Similar to `.maybe`, but instead of producing `null`, the property is omitted entirely from the converted object. This applies to null object creation as well.
 
+#### `.omitWhen((value) => { return true|false })`
+
+Omits the property when the given predicate is `true`. Predicate receives the original value.
+
 #### `.default(value)`
 
 Similar to `.maybe`, but instead of producing `null`, the given default value is used. This applies to null object creation as well.
 
-#### `.before((value) => { ...; return value; })`
+#### `.before((value) => { ...; return modifiedValue; })`
 
 Allows transformation of input values. The transformation function receives a single value and should return the modified value. The transformation is applied before validation.
 
@@ -245,11 +249,11 @@ Also, in case of higher order descriptors, the transformation is applied before 
 
 If instead you want to transform each value in a nested datastructure, use `.before` on the nested descriptor like this:
 
-`$Many($String.before((value) => { ... }))`
+`$Many($String.before(...)`
 
 Use `.before` over `.after` when you want to transform a value of a different type into the intended type without receiving a `ValidationError`.
 
-#### `.after(callback)`
+#### `.after((value) => { ...; return modifiedValue; })`
 
 Same as `.before`, but is applied after validation and conversion of nested values. When in doubt use this over `.before`.
 

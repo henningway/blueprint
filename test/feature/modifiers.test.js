@@ -11,7 +11,7 @@ const {
     IllegalModifierError
 } = require('../../dist');
 
-it('allows for missing keys or values with maybe', () => {
+it('allows for missing keys or values with maybe (maps to null)', () => {
     const bookBlueprint = blueprint({
         title: $String.maybe,
         pages: $Number.maybe,
@@ -29,7 +29,7 @@ it('allows for missing keys or values with maybe', () => {
     });
 });
 
-it('can leave out empty values with optional', () => {
+it('can omit empty properties (undefined and null) with optional', () => {
     const bookBlueprint = blueprint({
         title: $String.optional,
         pages: $Number.optional,
@@ -41,6 +41,15 @@ it('can leave out empty values with optional', () => {
     expect(bookBlueprint.make({ title: 'The Subtle Art of Not Giving a F*ck', pages: null })).toStrictEqual({
         title: 'The Subtle Art of Not Giving a F*ck'
     });
+});
+
+it('can omit properties given a condition with omitWhen', () => {
+    const bookBlueprint = blueprint({
+        genres: $Many($String).omitWhen((value) => value.length === 0)
+    });
+
+    expect(bookBlueprint.make({ genres: [] })).toStrictEqual({});
+    expect(bookBlueprint.make({ genres: ['novel'] })).toStrictEqual({ genres: ['novel'] });
 });
 
 test.each([{ price: $Number.optional.maybe }, { price: $Number.maybe.optional }])(
