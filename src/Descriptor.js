@@ -14,7 +14,7 @@ import {
 
 /**
  * Each instance is a characterization of one property of the target object. Does not contain any logic about the actual
- * extraction and conversion of
+ * extraction, validation and conversion of properties.
  */
 export class Descriptor {
     type;
