@@ -10,7 +10,6 @@ import {
 /**
  * Knows how to use a descriptor to extract a value from a raw object.
  */
-// @TODO support .cast modifier
 export class Extractor {
     constructor(descriptor) {
         this.descriptor = descriptor instanceof DescriptorProxy ? descriptor.eject() : descriptor;
@@ -50,7 +49,7 @@ export class Extractor {
 
         value = this.descriptor.beforeMutator(value);
 
-        type.validate(value);
+        type.validate(value, this.descriptor.key);
 
         let convert = type.convert.bind(type);
 

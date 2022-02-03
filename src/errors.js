@@ -21,9 +21,12 @@ export const BlueprintSpecificationError = class extends Error {
 
 export const ValidationError = class extends Error {
     constructor(value, key = null) {
-        const message = ['Property', key ? ' with key ' + key : '', ' of type ' + typeof value, ' is invalid.'].join(
-            ''
-        );
+        const message = [
+            'Property',
+            key ? " with key '" + key + "'" : '',
+            ' of type ' + typeof value,
+            ' is invalid.'
+        ].join('');
 
         super(message);
         this.name = 'ValidationError';

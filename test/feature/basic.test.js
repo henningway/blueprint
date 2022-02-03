@@ -108,10 +108,15 @@ it('revolts when a key is missing', () => {
 });
 
 it('revolts when a value is invalid', () => {
-    expect(() => blueprint({ hardCover: $Boolean }).make({ hardCover: true })).not.toThrow(ValidationError);
-    expect(() => blueprint({ hardCover: $Boolean }).make({ hardCover: 'true' })).toThrow(ValidationError);
-    expect(() => blueprint({ genres: $Many($String) }).make({ genres: ['fantasy', 'fiction'] })).not.toThrow(
-        ValidationError
-    );
-    expect(() => blueprint({ genres: $Many($String) }).make({ genres: ['fantasy', 1] })).toThrow(ValidationError);
+    const blueprint1 = blueprint({ hardCover: $Boolean });
+    const blueprint2 = blueprint({ genres: $Many($String) });
+
+    expect(() => blueprint1.make({ hardCover: true })).not.toThrow(ValidationError);
+    expect(() => blueprint1.make({ hardCover: 'true' })).toThrow(ValidationError);
+    expect(() => blueprint1.make({ hardCover: 'true' })).toThrow(
+        "Property with key 'hardCover' of type string is invalid."
+    ); // error contains key
+
+    expect(() => blueprint2.make({ genres: ['fantasy', 'fiction'] })).not.toThrow(ValidationError);
+    expect(() => blueprint2.make({ genres: ['fantasy', 1] })).toThrow(ValidationError);
 });
